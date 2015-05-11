@@ -45,7 +45,7 @@ private:
     // Параметры
     // double*& - текущая точка
     // double*& - следующая точка
-    void Runge_Cutta (double*& , double*&, double*&);
+    void Runge_Cutta (double*& , double*&);
 
     // вычисление фазовой скорости в заданной точке
     // Параметр:

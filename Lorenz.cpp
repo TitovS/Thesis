@@ -57,10 +57,10 @@ void Lorenz::GetTr (double* _init, double _dt, int _n)
         double* np = m_tr + (i + 1) * m_dim;
 
         // вычисление следующей точки методом Рунге-Кутта
-        //Runge_Cutta(np, cp, tp);
+        Runge_Cutta(np, cp);
 
         //Вычисление следюущей точки методом Эйлера
-        Euler(np,cp);
+        //Euler(np,cp);
     }
 }
 
@@ -78,10 +78,13 @@ void Lorenz::Euler (double*& _np, double*& _cp)
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
-void Lorenz::Runge_Cutta (double*& _np, double*& _cp, double*& _tp)
+void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
 {
     PhVelocity (_cp);
 
+
+    double tp;
+    double* _tp = &tp;
     double n[4*m_dim];
     // n1
     for (int i=0; i< m_dim; i++) {
@@ -90,7 +93,7 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp, double*& _tp)
 
     // n2
     for (int i=0; i< m_dim; i++) {  //
-        _tp[i] =*_cp + n[i]*m_dt/2;
+        tp = *_cp + n[i]*m_dt/2;
 
     }
     PhVelocity(_tp);
@@ -100,7 +103,7 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp, double*& _tp)
 
     // n3
     for (int i=0; i< m_dim; i++) {  //
-        _tp[i] =*_cp + n[i * 2]*m_dt/2;
+        tp =*_cp + n[i * 2]*m_dt/2;
     }
     PhVelocity(_tp);
     for (int i=0; i< m_dim; i++) {
@@ -109,7 +112,7 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp, double*& _tp)
 
     // n4
     for (int i=0; i< m_dim; i++) {  //
-        _tp[i] =*_cp + n[i * 3]*m_dt;
+        tp =*_cp + n[i * 3]*m_dt;
     }
     PhVelocity(_tp);
     for (int i=0; i< m_dim; i++) {
