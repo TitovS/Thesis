@@ -14,6 +14,8 @@ Lorenz::Lorenz (void)
 
     // количество точек в траектории
     m_n = 0;
+
+    m_tr=0;
 }
 
 
@@ -27,22 +29,21 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _dt, int _n)
+void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
 {
     // шаг метода
     m_dt = _dt;
 
-    // удаление старого массива точек траектории
-    if (m_n != 0)
-        delete [] m_tr;
-
     // количество вычисляемых точек
     m_n = _n;
 
-    // создание массива точек фазовой траектории
-    double* m_tr = new (std::nothrow) double [m_dim * m_n];
+    // Шаг решетки
+    a=_a;
 
-    // double* tp;  //Я не знаю в чем дело, но работает только так.
+    // создание массива точек фазовой траектории
+    m_tr = new (std::nothrow) double [m_dim * m_n];
+
+
 
     // запись начальных условий
     for (int i = 0; i < m_dim; i++)
@@ -61,7 +62,11 @@ void Lorenz::GetTr (double* _init, double _dt, int _n)
 
         //Вычисление следюущей точки методом Эйлера
         //Euler(np,cp);
+
+        //Дискретизация полученной траектории
+        GridTr(cp);
     }
+
 }
 
 
@@ -73,7 +78,7 @@ void Lorenz::Euler (double*& _np, double*& _cp)
 
     // метод Эйлера
     for (int i = 0; i < m_dim; i++)
-        _np [i] = *_cp + m_v [i] * m_dt;
+        _np [i] = _cp[i] + m_v [i] * m_dt;
 
 }
 
@@ -83,46 +88,45 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
     PhVelocity (_cp);
 
 
-    double tp;
-    double* _tp = &tp;
-    double n[4*m_dim];
+    double* tp = new double [m_dim];
+    double n[12];
     // n1
     for (int i=0; i< m_dim; i++) {
         n[i]=m_v[i];
     }
 
     // n2
-    for (int i=0; i< m_dim; i++) {  //
-        tp = *_cp + n[i]*m_dt/2;
+    for (int i=0; i< m_dim; i++) {
+        tp[i] = _cp[i] + n[i]*m_dt/2;
 
     }
-    PhVelocity(_tp);
+    PhVelocity(tp);
     for (int i=0; i< m_dim; i++) {
-        n[i*2] = m_v[i];
+        n[i+m_dim] = m_v[i];
     }
 
     // n3
     for (int i=0; i< m_dim; i++) {  //
-        tp =*_cp + n[i * 2]*m_dt/2;
+        tp[i] =_cp[i] + n[i+m_dim]*m_dt/2;
     }
-    PhVelocity(_tp);
+    PhVelocity(tp);
     for (int i=0; i< m_dim; i++) {
-        n[i*3] = m_v[i];
+        n[i + 2*m_dim] = m_v[i];
     }
 
     // n4
     for (int i=0; i< m_dim; i++) {  //
-        tp =*_cp + n[i * 3]*m_dt;
+        tp[i] =_cp[i] + n[i + 2*m_dim]*m_dt;
     }
-    PhVelocity(_tp);
+    PhVelocity(tp);
     for (int i=0; i< m_dim; i++) {
-        n[i*4] = m_v[i];
+        n[i+ 3*m_dim] = m_v[i];
     }
 
 
 
     for (int i=0; i< m_dim; i++) {
-        _np[i]=_cp[i]+m_dt/6*(n[i]+2*n[i*2]+2*n[i*3]+n[i*4])  ;
+        _np[i]=_cp[i]+(m_dt/6)*(n[i]+2*n[i+m_dim]+2*n[i+2*m_dim]+n[i+3*m_dim])  ;
     }
 
 }
@@ -139,10 +143,10 @@ void Lorenz::PhVelocity (double*& _cp)
 }
 
 // дикретизация полученной траектории
-void Lorenz::GridTr (double*& _cp, double a)
+void Lorenz::GridTr (double*& _np)
 {
     for (int i = 0; i<m_dim; i++) {
-        _cp[i] = round(_cp[i]/a)*a +a/2;
+        _np[i] = (round(_np[i]/a))*a +a/2;
     }
 
 
@@ -177,7 +181,8 @@ void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
 // деструктор
 Lorenz::~Lorenz ()
 {
-    delete [] m_tr;
+    if (m_tr != 0){
+    delete [] m_tr;}
 
     delete [] m_v;
 }

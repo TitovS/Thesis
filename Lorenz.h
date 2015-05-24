@@ -20,7 +20,7 @@ public:
     // double* - массив начальных условий
     // double - шаг вычисления
     // int - количество вычисляемых точек
-    void GetTr (double*, double, int);
+    void GetTr (double*, double, int, double);
 
     // сохранение траектории в файл
     // Параметры:
@@ -56,7 +56,7 @@ private:
     // Параметры
     // double*& - текущая точка
     // double шаг решетки
-    void GridTr (double*&, double);
+    void GridTr (double*&);
 
 
     // массив точек фазовой траектории
@@ -79,6 +79,6 @@ private:
     double m_sigma;
     double m_r;
 
-    // текущая точка
-    int m_k;
+    // Параметры дискретизации
+    double a;
 };
