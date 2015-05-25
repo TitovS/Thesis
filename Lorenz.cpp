@@ -42,6 +42,8 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
 
     // создание массива точек фазовой траектории
     m_tr = new (std::nothrow) double [m_dim * m_n];
+    // создание хэш массива
+    m_hash = new int [h_n];
 
 
 
