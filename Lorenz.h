@@ -1,6 +1,13 @@
 //
 // Created by Сергей Титов on 10/05/15.
 //
+
+
+#ifndef THESIS_LORENZ_H
+#define THESIS_LORENZ_H
+
+#include "set"
+
 class Lorenz
 {
 public:
@@ -59,11 +66,21 @@ private:
     void GridTr (double*&);
 
 
+    // Хэш-функция
+    // Параметры
+    // double*& - полученная точка
+    void HashFun (double*&);
+
     // массив точек фазовой траектории
     double* m_tr;
 
+    // параметры системы Лоренца
+    double m_b;
+    double m_sigma;
+    double m_r;
+
     // хэш-массив
-    int* m_hash;
+    std::set<double>* m_hash;
 
     // вектор фазовой скорости
     double* m_v;
@@ -77,14 +94,20 @@ private:
     // шаг алгоритма
     double m_dt;
 
-    // параметры системы Лоренца
-    double m_b;
-    double m_sigma;
-    double m_r;
+
 
     // Параметры дискретизации
     double a; //Сетка
 
     // Параметры Хэш функции
-    int h_n; //Размер хэш-функции
+    // Размер хэш-функции
+    int h_n;
+    // Хэш значения
+    int p1;
+    int p2;
+    int p3;
 };
+
+
+
+#endif //CLASSES_CPOINT_H

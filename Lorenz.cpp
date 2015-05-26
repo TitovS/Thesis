@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <set>
 
 // конструктор
 Lorenz::Lorenz (void)
@@ -16,6 +17,13 @@ Lorenz::Lorenz (void)
     m_n = 0;
 
     m_tr=0;
+
+    // хэш-значения
+    p1=73856093;
+    p2=19349663;
+    p3=83492791;
+
+    h_n=10000;
 }
 
 
@@ -42,10 +50,9 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
 
     // создание массива точек фазовой траектории
     m_tr = new (std::nothrow) double [m_dim * m_n];
+
     // создание хэш массива
-    m_hash = new int [h_n];
-
-
+    m_hash = new std::set<double>[h_n];
 
     // запись начальных условий
     for (int i = 0; i < m_dim; i++)
@@ -62,11 +69,11 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
         // вычисление следующей точки методом Рунге-Кутта
         Runge_Cutta(np, cp);
 
-        //Вычисление следюущей точки методом Эйлера
-        //Euler(np,cp);
-
         //Дискретизация полученной траектории
-        GridTr(cp);
+        GridTr(np);
+
+        //Хэширование полученных траекторий
+        HashFun(np,i);
     }
 
 }
@@ -88,7 +95,6 @@ void Lorenz::Euler (double*& _np, double*& _cp)
 void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
 {
     PhVelocity (_cp);
-
 
     double* tp = new double [m_dim];
     double n[12];
@@ -125,8 +131,6 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
         n[i+ 3*m_dim] = m_v[i];
     }
 
-
-
     for (int i=0; i< m_dim; i++) {
         _np[i]=_cp[i]+(m_dt/6)*(n[i]+2*n[i+m_dim]+2*n[i+2*m_dim]+n[i+3*m_dim])  ;
     }
@@ -150,7 +154,20 @@ void Lorenz::GridTr (double*& _np)
     for (int i = 0; i<m_dim; i++) {
         _np[i] = (round(_np[i]/a))*a +a/2;
     }
+}
 
+// хэш функция
+void Lorenz::HashFun (double*& _np){
+
+    int _hp0=_np[0]*10000;  // Вопрос первый - побитовые операции невозможны с double. Я пока использую такой метод преобразования. За счет того, что значения дискретизованы я не теряю точность.
+    int _hp1=_np[1]*10000;
+    int _hp2=_np[2]*10000;
+
+    int _hp =abs( ((_hp0*p1)^(_hp1*p2)^(_hp2*p3))%h_n); // Вопрос второй - Эта хэш функция выдавала у меня отрицательные значения. Я пока написал модуль, но, боюсь, что это может сказаться на распределении ее значений.
+
+    for (int i = 0; i < m_dim; ++i) {
+        m_hash[_hp].insert(_np[i]);  // Вопрос третий - насколько я понимаю, то в множество не записываются повторные значения. Когда встречаются повторные значения, то insert возвращает false (или положение повторного элемента). Может этим воспользоваться для определния циклов? Если да, то как достать из instert возвращаемые значения
+    }
 
 }
 
@@ -162,6 +179,7 @@ void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
 {
     // создание файлового потока вывода
     std::ofstream out;
+
     // связывание потока с файлом
     out.open (_fln);
 
@@ -172,7 +190,7 @@ void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
         for (int j = 0; j < m_dim; j++)
         { std::cout << m_tr [i * m_dim + j] << " ";
         }
-        std::cout << "\n";
+        std::cout  << "\n";
     }
 
     // закрытие файла
