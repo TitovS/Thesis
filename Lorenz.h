@@ -6,7 +6,8 @@
 #ifndef THESIS_LORENZ_H
 #define THESIS_LORENZ_H
 
-#include "set"
+#include "map"
+#include "list"
 
 class Lorenz
 {
@@ -71,6 +72,13 @@ private:
     // double*& - полученная точка
     void HashFun (double*&);
 
+    //Функция проверки цикла
+    void CycleCheck();
+
+
+
+
+
     // массив точек фазовой траектории
     double* m_tr;
 
@@ -80,7 +88,7 @@ private:
     double m_r;
 
     // хэш-массив
-    std::set<double>* m_hash;
+    std::map<int,std::list<double>> m_hash;
 
     // вектор фазовой скорости
     double* m_v;
@@ -94,8 +102,6 @@ private:
     // шаг алгоритма
     double m_dt;
 
-
-
     // Параметры дискретизации
     double a; //Сетка
 
@@ -106,6 +112,11 @@ private:
     int p1;
     int p2;
     int p3;
+
+    // Статистика
+    int stat_ncycle;
+
+
 };
 
 
