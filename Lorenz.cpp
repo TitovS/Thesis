@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
-#include <set>
+
 
 // конструктор
 Lorenz::Lorenz (void)
@@ -78,19 +78,6 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
 
 }
 
-
-// вычисление следующей точки фазовой траектории по текущей - Эйлер
-void Lorenz::Euler (double*& _np, double*& _cp)
-{
-    // вычисление фазовой скорости
-    PhVelocity (_cp);
-
-    // метод Эйлера
-    for (int i = 0; i < m_dim; i++)
-        _np [i] = _cp[i] + m_v [i] * m_dt;
-
-}
-
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
 void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
 {
@@ -161,45 +148,35 @@ void Lorenz::GridTr (double*& _np)
 void Lorenz::HashFun (double*& _np){
 
     //Хэширование полученной точки
-    int _hp0=_np[0]*pow(a,-1); //переходы в целочисленные значения для проведения побитовых операций
-    int _hp1=_np[1]*pow(a,-1);
-    int _hp2=_np[2]*pow(a,-1);
+    int h[m_dim];
+    for (int i = 0; i < m_dim; ++i) {
+        h[i]=_np[i]*1/a; //переходы в целочисленные значения для проведения побитовых операций
+    }
 
-    int _hp =abs(((_hp0*p1)^(_hp1*p2)^(_hp2*p3))%h_n); //при мелкой сетке выходит за границы - пока проблема не решена
+    int hp =abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //при мелкой сетке выходит за границы - пока проблема не решена
 
 
-    std::list<double>::iterator it;  //Созадние итератора
+    std::list<double*>::iterator it;  //Созадние итератора
     int n_n=0; //дополнительная переменная для подсчетка кол-ва совпадений координат между двух точек
 
 
     //Проверка коодинат
-    if (m_hash[_hp].size() == 0 ) {  //если в листе ничего нет, то мы записываем туда три координаты
-        for (int i = 0; i < m_dim; ++i) {
-            m_hash[_hp].push_back(_np[i]);
+    if (m_hash[hp].size() == 0 ) {  //если в листе ничего нет, то мы записываем туда три координаты
+            m_hash[hp].push_back(_np);
         }
 
-    }
 
     else { //если в листе есть что-то то мы проверям совпадения
-        for (it = m_hash[_hp].begin(); //будем проверять каждый элемент листа
-             it != m_hash[_hp].end();) {
+        for (it = m_hash[hp].begin(); it != m_hash[hp].end(); std::advance(it,m_dim)){
 
-            for (int k = 0; k < m_dim; ++k) {
+            n_n=memcmp(*it, _np, m_dim*sizeof(_np));
+            if (n_n == 0) {S.collect(_np, *it, m_dim);//Если все три координаты совпали, то отмечаем наличие цикла
 
-                if (*it == _np[k]) {  //сравниваем содержимое
-                    n_n = n_n + 1; //если равны, то прибавляем
-                    it++; //переходим к следующему элементу
-                }
-                else { it++; } //переходим к следующему элементу
-            }
         }
         //после проверки записываем новые элементы
-        for (int i = 0; i < m_dim; ++i) {
-            m_hash[_hp].push_back(_np[i]);
-        }
+            m_hash[hp].push_back(&_np[0]);
 
-        //Если все три координаты совпали, то отмечаем наличие цикла
-        if (n_n == 3) { stat_ncycle = stat_ncycle + 1; }
+        }
     }
 }
 
@@ -209,6 +186,8 @@ void Lorenz::HashFun (double*& _np){
 // сохранение траектории в файл
 void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
 {
+   //S.save;
+
     // создание файлового потока вывода
    /* std::ofstream out;
 
@@ -226,7 +205,7 @@ void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
     }
 
  */
-    std::cout  << stat_ncycle;
+    std::cout  << S.n_cycle;
     // закрытие файла
     //out.close ();
 }
