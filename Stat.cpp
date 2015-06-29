@@ -22,7 +22,7 @@ double x = 0;
 
         l_cycle[n_cycle]+= sqrt(x);
         s_cycle[n_cycle]+= 1;
-
+        x = 0;
         _cp += m_dim;
 
     }

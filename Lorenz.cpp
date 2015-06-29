@@ -24,6 +24,9 @@ Lorenz::Lorenz (void)
     p3=83492791;
 
     h_n=10000;
+
+    S.n_cycle=0;
+    S.l_cycle =  new double [100];
 }
 
 
@@ -67,10 +70,10 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
         double* np = m_tr + (i + 1) * m_dim;
 
         // вычисление следующей точки методом Рунге-Кутта
-        Runge_Cutta(np, cp);
+       //____ Временно в gridtr
 
         //Дискретизация полученной траектории
-        GridTr(np);
+        GridTr(np, cp);
 
         //Хэширование полученных траекторий
         HashFun(np);
@@ -134,11 +137,42 @@ void Lorenz::PhVelocity (double*& _cp)
 }
 
 // дикретизация полученной траектории
-void Lorenz::GridTr (double*& _np)
+void Lorenz::GridTr (double*& _np,double*& _cp)
 {
-    for (int i = 0; i<m_dim; i++) {
-        _np[i] = (round(_np[i]/a))*a +a/2;
+
+    double* x = new double [m_dim];
+    double* xr = new double [m_dim];
+
+    for (int i = 0; i < m_dim; ++i) {
+        x[i]=_cp[i];
     }
+
+    for (int l = -1; l < 2; ++l) {
+        for (int i = -1; i <2; ++i) {
+            for (int j = -1; j <2; ++j) {
+
+                x[0] += l*a;
+                x[1] += i*a;
+                x[2] += j*a;
+
+                Runge_Cutta(x, _cp);
+
+                for (int k = 0; k < m_dim; ++k) {
+                    xr[k] += x[k];
+                }
+            }
+        }
+    }
+
+
+
+
+    for (int j = 0; j < m_dim; ++j) {
+        _np[j] = round ((xr[j]/(m_dim*m_dim*m_dim))/a)*a +a/2;
+    }
+
+
+
 }
 
 // хэш функция
@@ -159,8 +193,8 @@ void Lorenz::HashFun (double* _np){
 
     //Проверка коодинат
     if (m_hash[hp].size() == 0 ) {  //если в листе ничего нет, то мы записываем туда три координаты
-            m_hash[hp].push_back(_np);
-        }
+        m_hash[hp].push_back(_np);
+    }
 
 
     else { //если в листе есть что-то то мы проверям совпадения
@@ -171,7 +205,7 @@ void Lorenz::HashFun (double* _np){
 
         }
         //после проверки записываем новые элементы
-            m_hash[hp].push_back(_np);
+        m_hash[hp].push_back(_np);
 
 
     }
