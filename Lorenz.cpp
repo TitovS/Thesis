@@ -128,12 +128,9 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
 void Lorenz::PhVelocity (double*& _cp)
 
 {
-
     m_v [0] = m_sigma * (_cp [1] - _cp [0]);
     m_v [1] = (m_r - _cp [2]) * _cp [0] - _cp [1];
     m_v [2] = _cp [0] * _cp [1] - m_b * _cp [2];
-
-
 }
 
 // дикретизация полученной траектории
@@ -145,7 +142,7 @@ void Lorenz::GridTr (double*& _np)
 }
 
 // хэш функция
-void Lorenz::HashFun (double*& _np){
+void Lorenz::HashFun (double* _np){
 
     //Хэширование полученной точки
     int h[m_dim];
@@ -167,16 +164,16 @@ void Lorenz::HashFun (double*& _np){
 
 
     else { //если в листе есть что-то то мы проверям совпадения
-        for (it = m_hash[hp].begin(); it != m_hash[hp].end(); std::advance(it,m_dim)){
+        for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
 
             n_n=memcmp(*it, _np, m_dim*sizeof(_np));
-            if (n_n == 0) {S.collect(_np, *it, m_dim);//Если все три координаты совпали, то отмечаем наличие цикла
+            if (n_n == 0) {S.collect(_np, *it, m_dim);}//Если все три координаты совпали, то отмечаем наличие цикла
 
         }
         //после проверки записываем новые элементы
-            m_hash[hp].push_back(&_np[0]);
+            m_hash[hp].push_back(_np);
 
-        }
+
     }
 }
 

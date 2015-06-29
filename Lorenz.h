@@ -106,7 +106,7 @@ private:
         // Параметры
         // double*& - полученная точка
         //
-        void HashFun (double*&);
+        void HashFun (double*);
 
         // хэш-массив
         std::map<int,std::list<double*>> m_hash;
