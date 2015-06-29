@@ -26,7 +26,7 @@ Lorenz::Lorenz (void)
     h_n=10000;
 
     S.n_cycle=0;
-    S.l_cycle =  new double [100];
+    S.l_cycle =  new double [1000000];
 }
 
 
@@ -201,11 +201,12 @@ void Lorenz::HashFun (double* _np){
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
 
             n_n=memcmp(*it, _np, m_dim*sizeof(_np));
-            if (n_n == 0) {S.collect(_np, *it, m_dim);}//Если все три координаты совпали, то отмечаем наличие цикла
+            if (n_n == 0) { S.collect(_np, *it, m_dim);
+             }//Если все три координаты совпали, то отмечаем наличие цикла
 
-        }
+            }
         //после проверки записываем новые элементы
-        m_hash[hp].push_back(_np);
+        //m_hash[hp].push_back(_np);
 
 
     }
@@ -236,7 +237,7 @@ void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
     }
 
  */
-    std::cout  << S.n_cycle;
+    std::cout  << S.n_cycle << " " << S.l_cycle[0];
     // закрытие файла
     //out.close ();
 }

@@ -16,14 +16,14 @@ double x = 0;
 
         for (int i = 0; i < m_dim; ++i) {
 
-          x += (_cp[i] - ((_cp+1)[i]))*(_cp[i] - ((_cp+1)[i]));
+          x += (_cp[i] - _cp[i+m_dim])*(_cp[i] - _cp[i+m_dim]);
 
         }
 
-        l_cycle[n_cycle]+= sqrt(x);
-        s_cycle[n_cycle]+= 1;
+        //l_cycle[n_cycle]+= 0;
+        //s_cycle[n_cycle]+= 1;
         x = 0;
-        _cp += m_dim;
+        _cp +=m_dim;
 
     }
 
