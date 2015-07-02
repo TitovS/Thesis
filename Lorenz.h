@@ -36,7 +36,7 @@ public:
     // int - начальная точка
     // int - интервал пропуска точек
     // int - конечная точка
-    void Save (char*, int, int, int);
+    void Save (int, int, int);
 
     // деконструктор
     ~Lorenz ();

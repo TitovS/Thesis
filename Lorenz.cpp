@@ -69,14 +69,13 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
         // указатель на следующую точку
         double* np = m_tr + (i + 1) * m_dim;
 
-        // вычисление следующей точки методом Рунге-Кутта
-       //____ Временно в gridtr
-
-        //Дискретизация полученной траектории
+        // вычисление следующей точки методом Рунге-Кутта и Дискретизация полученной траектории
         GridTr(np, cp);
 
         //Хэширование полученных траекторий
         HashFun(np);
+
+        if (S.n_cycle > 0) break;
     }
 
 }
@@ -140,42 +139,39 @@ void Lorenz::PhVelocity (double*& _cp)
 void Lorenz::GridTr (double*& _np,double*& _cp)
 {
 
-    double* x = new double [m_dim];
-    double* xr = new double [m_dim];
+    double* x = new double [m_dim]; //Доп. переменная для создания точек
+    double* xr = new double [m_dim]; //Доп. переменная для результата точек
 
     for (int i = 0; i < m_dim; ++i) {
         x[i]=_cp[i];
     }
-
+    // Создания точек на решетке вокруг искомой
     for (int l = -1; l < 2; ++l) {
         for (int i = -1; i <2; ++i) {
             for (int j = -1; j <2; ++j) {
 
-                x[0] += l*a;
-                x[1] += i*a;
-                x[2] += j*a;
 
-                Runge_Cutta(x, _cp);
+                x[0] = _cp[0] +l*a;
+                x[1] = _cp[1] +i*a;
+                x[2] = _cp[2] +j*a;
+
+                Runge_Cutta(x, _cp); //вычисление траекторый
 
                 for (int k = 0; k < m_dim; ++k) {
-                    xr[k] += x[k];
+                    xr[k] += x[k];  // сумма по каждой координате
                 }
             }
         }
     }
-
-
-
 
     for (int j = 0; j < m_dim; ++j) {
         _np[j] = round ((xr[j]/(m_dim*m_dim*m_dim))/a)*a +a/2;
     }
 
 
-
 }
 
-// хэш функция
+// Хэш функция
 void Lorenz::HashFun (double* _np){
 
     //Хэширование полученной точки
@@ -189,26 +185,20 @@ void Lorenz::HashFun (double* _np){
 
     std::list<double*>::iterator it;  //Созадние итератора
     int n_n=0; //дополнительная переменная для подсчетка кол-ва совпадений координат между двух точек
-
-
+    int io = 0;
+    int kl;
     //Проверка коодинат
     if (m_hash[hp].size() == 0 ) {  //если в листе ничего нет, то мы записываем туда три координаты
         m_hash[hp].push_back(_np);
     }
-
-
     else { //если в листе есть что-то то мы проверям совпадения
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
 
             n_n=memcmp(*it, _np, m_dim*sizeof(_np));
-            if (n_n == 0) { S.collect(_np, *it, m_dim);
-             }//Если все три координаты совпали, то отмечаем наличие цикла
-
+            if (n_n == 0) {
+                S.collect(_np, *it, m_dim);
             }
-        //после проверки записываем новые элементы
-        //m_hash[hp].push_back(_np);
-
-
+        }
     }
 }
 
@@ -216,30 +206,30 @@ void Lorenz::HashFun (double* _np){
 
 
 // сохранение траектории в файл
-void Lorenz::Save (char* _fln,int _be, int _dn, int _en)
+void Lorenz::Save (int _be, int _dn, int _en)
 {
    //S.save;
-
-    // создание файлового потока вывода
-   /* std::ofstream out;
+   //создание файлового потока вывода
+    std::ofstream out;
 
     // связывание потока с файлом
-    out.open (_fln);
+    out.open ("1.txt");
 
     // вывод результата
-    out.precision (15); // задание количества значащих цифр в выводимых числах
+    //out.precision (15); // задание количества значащих цифр в выводимых числах
     for (int i = _be; i < _en; i += _dn * m_dim)
     {
         for (int j = 0; j < m_dim; j++)
-        { std::cout << m_tr [i * m_dim + j] << " ";
+        {
+            out << m_tr [i * m_dim + j] << " ";
         }
-        std::cout  << "\n";
+        out  << "\n";
     }
+// закрытие файла
+    out.close ();
 
- */
-    std::cout  << S.n_cycle << " " << S.l_cycle[0];
-    // закрытие файла
-    //out.close ();
+    std::cout  << S.n_cycle << " " << S.l_cycle[1];
+
 }
 
 

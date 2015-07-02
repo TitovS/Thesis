@@ -8,11 +8,12 @@
 
 void Stat::collect(double* _np, double* _cp, int m_dim) {
 
-double x = 0;
+
+    double x = 0;
+    n_cycle +=1; // счетчик кол - ва циклов
+
 
     while (_cp != _np){
-
-
 
         for (int i = 0; i < m_dim; ++i) {
 
@@ -20,17 +21,20 @@ double x = 0;
 
         }
 
-        //l_cycle[n_cycle]+= 0;
-        //s_cycle[n_cycle]+= 1;
+        l_cycle[n_cycle] += sqrt(x);
+        s_cycle[n_cycle] += 1;
         x = 0;
         _cp +=m_dim;
 
     }
 
 
-    n_cycle +=1; // счетчик кол - ва циклов
+
 }
 
 void Stat::save() {
+
+
+
 
 }
