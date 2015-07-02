@@ -75,7 +75,7 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
         //Хэширование полученных траекторий
         HashFun(np);
 
-        if (S.n_cycle > 0) break;
+        if (S.n_cycle > 0) break; //Если обнаржуен цикл, то вычисление заканчиывается.
     }
 
 }
