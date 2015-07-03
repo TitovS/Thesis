@@ -27,6 +27,7 @@ Lorenz::Lorenz (void)
 
     S.n_cycle=0;
     S.l_cycle =  new double [1000000];
+    S.s_cycle[1] =  0;
 }
 
 
@@ -186,7 +187,6 @@ void Lorenz::HashFun (double* _np){
     std::list<double*>::iterator it;  //Созадние итератора
     int n_n=0; //дополнительная переменная для подсчетка кол-ва совпадений координат между двух точек
     int io = 0;
-    int kl;
     //Проверка коодинат
     if (m_hash[hp].size() == 0 ) {  //если в листе ничего нет, то мы записываем туда три координаты
         m_hash[hp].push_back(_np);
@@ -199,6 +199,8 @@ void Lorenz::HashFun (double* _np){
                 S.collect(_np, *it, m_dim);
             }
         }
+        if (S.s_cycle[S.n_cycle] == 0)
+        {m_hash[hp].push_back(_np);}
     }
 }
 
@@ -228,8 +230,18 @@ void Lorenz::Save (int _be, int _dn, int _en)
 // закрытие файла
     out.close ();
 
-    std::cout  << S.n_cycle << " " << S.l_cycle[1];
 
+
+//    typedef std::map<int, std::list<double*>>::const_iterator MapIterator;
+//    for (MapIterator iter = m_hash.begin(); iter != m_hash.end(); iter++)
+//    {
+//        std::cout << "Key: " << iter->first << "   " << "Values:" << " ";
+//        typedef std::list<double*>::const_iterator ListIterator;
+//        for (ListIterator list_iter = iter->second.begin(); list_iter != iter->second.end(); list_iter++)
+//        {std::cout << " " << **list_iter ;}
+//        std::cout << "\n ";
+//    }
+    std::cout << S.n_cycle << " " << S.s_cycle[1]<<  " " << S.l_cycle[1]<<"\n ";
 }
 
 
@@ -237,7 +249,7 @@ void Lorenz::Save (int _be, int _dn, int _en)
 Lorenz::~Lorenz ()
 {
     if (m_tr != 0){
-    delete [] m_tr;}
+        delete [] m_tr;}
 
     delete [] m_v;
 }
