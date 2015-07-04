@@ -26,8 +26,8 @@ Lorenz::Lorenz (void)
     h_n=10000;
 
     S.n_cycle=0;
-    S.l_cycle =  new double [1000000];
-    S.s_cycle[1] =  0;
+    S.l_cycle =  new double [1000];
+    S.s_cycle =  new int [1000];
 }
 
 
@@ -41,7 +41,7 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
+void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int b)
 {
     // шаг метода
     m_dt = _dt;
@@ -55,7 +55,8 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
     // создание массива точек фазовой траектории
     m_tr = new (std::nothrow) double [m_dim * m_n];
 
-    // создание хэш массива
+    // доп переменная
+    int cold = 0;
 
 
     // запись начальных условий
@@ -71,12 +72,20 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a)
         double* np = m_tr + (i + 1) * m_dim;
 
         // вычисление следующей точки методом Рунге-Кутта и Дискретизация полученной траектории
-        GridTr(np, cp);
+        Runge_Cutta(np, cp);
 
-        //Хэширование полученных траекторий
-        HashFun(np);
+        if (i%b == 0) {
+            GridTr(np);
+            HashFun(np);}
 
-        if (S.n_cycle > 0) break; //Если обнаржуен цикл, то вычисление заканчиывается.
+        if (S.n_cycle > cold) {
+
+            cold+=1;
+            b -= 1;
+        }
+
+
+        if (b == 0) break; //Если обнаржуен цикл, то вычисление заканчиывается.
     }
 
 }
@@ -136,8 +145,16 @@ void Lorenz::PhVelocity (double*& _cp)
     m_v [2] = _cp [0] * _cp [1] - m_b * _cp [2];
 }
 
-// дикретизация полученной траектории
-void Lorenz::GridTr (double*& _np,double*& _cp)
+
+void Lorenz::GridTr (double*& _np)
+{
+    for (int i = 0; i<m_dim; i++) {
+        _np[i] = (round(_np[i]/a))*a +a/2;
+    }
+}
+
+// дикретизация полученной траектории методом Цпвд
+void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
 {
 
     double* x = new double [m_dim]; //Доп. переменная для создания точек
@@ -215,7 +232,7 @@ void Lorenz::Save (int _be, int _dn, int _en)
     std::ofstream out;
 
     // связывание потока с файлом
-    out.open ("1.txt");
+    out.open ("tr1.txt");
 
     // вывод результата
     //out.precision (15); // задание количества значащих цифр в выводимых числах
@@ -241,7 +258,12 @@ void Lorenz::Save (int _be, int _dn, int _en)
 //        {std::cout << " " << **list_iter ;}
 //        std::cout << "\n ";
 //    }
-    std::cout << S.n_cycle << " " << S.s_cycle[1]<<  " " << S.l_cycle[1]<<"\n ";
+
+
+    for (int k = 0; k < S.n_cycle; ++k) {
+        std::cout << k << " " << S.s_cycle[k]<<  " " << S.l_cycle[k]<<"\n ";
+    }
+
 }
 
 

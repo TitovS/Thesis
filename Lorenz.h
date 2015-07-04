@@ -29,7 +29,7 @@ public:
     // double* - массив начальных условий
     // double - шаг вычисления
     // int - количество вычисляемых точек
-    void GetTr (double*, double, int, double);
+    void GetTr (double*, double, int, double, int);
 
     // сохранение траектории в файл
     // Параметры:
@@ -42,8 +42,10 @@ public:
     ~Lorenz ();
 
     // Статистика системы
-
     Stat S;
+
+
+
 
 
 private:
@@ -92,13 +94,19 @@ private:
 
     // Метод пространтсвенно-временой дискретизации
 
-        // Функция
+        // Функция ЦПВД
         // double*& - текущая точка
         // double шаг решетки
-        void GridTr (double*&,double*& );
+        void GridTrCPVD (double*&,double*& );
 
-        // Шаг решетки
+        // Фунция обынчая
+        void GridTr (double*&);
+
+        // Размер решетки
         double a;
+
+        // Шаг на решетке
+        double b;
 
 //____________________________________
 
