@@ -11,7 +11,7 @@ Lorenz::Lorenz (void)
     m_dim = 3;
 
     // вектор фазовой скорости
-    m_v = new double [m_dim];
+
 
     // количество точек в траектории
     m_n = 0;
@@ -26,8 +26,10 @@ Lorenz::Lorenz (void)
     h_n=10000;
 
     S.n_cycle=0;
-    S.l_cycle =  new double [1000];
-    S.s_cycle =  new int [1000];
+    S.l_cycle =  new double [100000];
+    S.s_cycle =  new int [100000];
+
+    c_old =0;
 }
 
 
@@ -41,7 +43,7 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int b)
+void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b)
 {
     // шаг метода
     m_dt = _dt;
@@ -51,20 +53,18 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int b)
 
     // Шаг решетки
     a=_a;
+    b=_b;
 
     // создание массива точек фазовой траектории
     m_tr = new (std::nothrow) double [m_dim * m_n];
-
-    // доп переменная
-    int cold = 0;
-
+    m_v = new double [m_dim];
 
     // запись начальных условий
     for (int i = 0; i < m_dim; i++)
         m_tr [i] = _init [i];
 
     // вычисление траектории
-    for (int i = 0; i < m_n - 1; i++)
+    for (int i = 0; i < m_n-1 ; i++)
     {
         // указатель на текущую точку
         double* cp = m_tr + i * m_dim;
@@ -74,18 +74,18 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int b)
         // вычисление следующей точки методом Рунге-Кутта и Дискретизация полученной траектории
         Runge_Cutta(np, cp);
 
+        //дискретизация при шаге на решетке
         if (i%b == 0) {
             GridTr(np);
             HashFun(np);}
+        //Если обнаржуен цикл, то вычисление заканчиывается.
+        if (S.n_cycle > c_old) {
 
-        if (S.n_cycle > cold) {
+            c_old = S.n_cycle;
+            std::cout  << " " << S.s_cycle[S.n_cycle]<<  " " << S.l_cycle[S.n_cycle]<<"\n ";
+            break;
+            }
 
-            cold+=1;
-            b -= 1;
-        }
-
-
-        if (b == 0) break; //Если обнаржуен цикл, то вычисление заканчиывается.
     }
 
 }
@@ -225,29 +225,32 @@ void Lorenz::HashFun (double* _np){
 
 
 // сохранение траектории в файл
-void Lorenz::Save (int _be, int _dn, int _en)
-{
-   //S.save;
-   //создание файлового потока вывода
+void Lorenz::Save (int _be, int _dn, int _en) {
+    //S.save;
+    //создание файлового потока вывода
     std::ofstream out;
 
     // связывание потока с файлом
-    out.open ("tr1.txt");
+    out.open("tr1.txt");
 
     // вывод результата
     //out.precision (15); // задание количества значащих цифр в выводимых числах
-    for (int i = _be; i < _en; i += _dn * m_dim)
-    {
-        for (int j = 0; j < m_dim; j++)
-        {
-            out << m_tr [i * m_dim + j] << " ";
+    for (int i = _be; i < _en; i += _dn * m_dim) {
+        for (int j = 0; j < m_dim; j++) {
+            out << m_tr[i * m_dim + j] << " ";
         }
-        out  << "\n";
+        out << "\n";
     }
 // закрытие файла
-    out.close ();
+    out.close();
 
+//    for (int k = 1; k < S.n_cycle+1; ++k) {
+//        std::cout << k << " " << S.s_cycle[k]<<  " " << S.l_cycle[k]<<"\n ";
+//    }
 
+    m_tr = 0;
+    m_v = 0;
+    m_hash.clear();
 
 //    typedef std::map<int, std::list<double*>>::const_iterator MapIterator;
 //    for (MapIterator iter = m_hash.begin(); iter != m_hash.end(); iter++)
@@ -257,21 +260,15 @@ void Lorenz::Save (int _be, int _dn, int _en)
 //        for (ListIterator list_iter = iter->second.begin(); list_iter != iter->second.end(); list_iter++)
 //        {std::cout << " " << **list_iter ;}
 //        std::cout << "\n ";
-//    }
-
-
-    for (int k = 0; k < S.n_cycle; ++k) {
-        std::cout << k << " " << S.s_cycle[k]<<  " " << S.l_cycle[k]<<"\n ";
-    }
-
+//}
 }
 
 
 // деструктор
 Lorenz::~Lorenz ()
 {
-    if (m_tr != 0){
-        delete [] m_tr;}
-
-    delete [] m_v;
+//    if (m_tr != 0){
+//        delete [] m_tr;}
+  //  delete [] m_v;
+    m_hash.clear();
 }
