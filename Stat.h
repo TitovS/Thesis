@@ -6,6 +6,8 @@
 #define THESIS_STAT_H
 
 
+#include "list"
+
 class Stat {
 public:
 //Статистики циклов
@@ -16,18 +18,22 @@ public:
     //Массив шагов циклов
     int* s_cycle;
 
+    //Количество циклов
+    int n_cycle;
+
+    //массив первых элемнтов циклов
+    std::list <double> firsts;
+
+    //Уникальных циклов
+    int u_cycle;
 
 //Функции
 
     //Сбор статистики о цикле
     void collect(double*, double*, int);
 
-    //Сохранение статистики в файле
-    void save();
+    bool check();
 
-
-    //Количество циклов
-    int n_cycle;
 };
 
 

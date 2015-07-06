@@ -62,7 +62,7 @@ private:
         int m_dim;
 
         //
-        int c_old;
+        int c_done;
 
 //____________________________________
 

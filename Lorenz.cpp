@@ -23,13 +23,17 @@ Lorenz::Lorenz (void)
     p2=19349663;
     p3=83492791;
 
+    // Размер хэш таблицы
     h_n=10000;
 
+    // Инициализация класса статистики
     S.n_cycle=0;
+    S.u_cycle=0;
     S.l_cycle =  new double [100000];
     S.s_cycle =  new int [100000];
 
-    c_old =0;
+    //Счетчик сдвига
+    c_done = 0;
 }
 
 
@@ -78,16 +82,22 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b)
         if (i%b == 0) {
             GridTr(np);
             HashFun(np);}
-        //Если обнаржуен цикл, то вычисление заканчиывается.
-        if (S.n_cycle > c_old) {
 
-            c_old = S.n_cycle;
-            std::cout  << " " << S.s_cycle[S.n_cycle]<<  " " << S.l_cycle[S.n_cycle]<<"\n ";
+        //Если обнаржуен цикл, то вычисление заканчиывается.
+        if (S.n_cycle > c_done) {
+
+            c_done = S.n_cycle;
+
             break;
-            }
+        }
+
 
     }
 
+
+    m_tr = 0;
+    m_v = 0;
+    m_hash.clear();
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -194,31 +204,32 @@ void Lorenz::HashFun (double* _np){
 
     //Хэширование полученной точки
     int h[m_dim];
+
     for (int i = 0; i < m_dim; ++i) {
         h[i]=_np[i]*1/a; //переходы в целочисленные значения для проведения побитовых операций
     }
 
-    int hp =abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //при мелкой сетке выходит за границы - пока проблема не решена
+    int hp =((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n; //при мелкой сетке выходит за границы - пока проблема не решена
 
 
     std::list<double*>::iterator it;  //Созадние итератора
     int n_n=0; //дополнительная переменная для подсчетка кол-ва совпадений координат между двух точек
-    int io = 0;
+
     //Проверка коодинат
-    if (m_hash[hp].size() == 0 ) {  //если в листе ничего нет, то мы записываем туда три координаты
-        m_hash[hp].push_back(_np);
-    }
-    else { //если в листе есть что-то то мы проверям совпадения
+    if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
+
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
 
-            n_n=memcmp(*it, _np, m_dim*sizeof(_np));
+            n_n=memcmp(*it, _np, m_dim*sizeof(_np)); //проверям по памяти
+
             if (n_n == 0) {
-                S.collect(_np, *it, m_dim);
+                S.collect(_np, *it, m_dim); //При совпадении координат, собираем данные о цикле
             }
         }
-        if (S.s_cycle[S.n_cycle] == 0)
-        {m_hash[hp].push_back(_np);}
     }
+
+    //Запись координаты
+    {m_hash[hp].push_back(_np);}
 }
 
 
@@ -234,41 +245,27 @@ void Lorenz::Save (int _be, int _dn, int _en) {
     out.open("tr1.txt");
 
     // вывод результата
-    //out.precision (15); // задание количества значащих цифр в выводимых числах
     for (int i = _be; i < _en; i += _dn * m_dim) {
         for (int j = 0; j < m_dim; j++) {
-            out << m_tr[i * m_dim + j] << " ";
+          //  out << m_tr[i * m_dim + j] << " ";
         }
-        out << "\n";
+    //    out << "\n";
     }
 // закрытие файла
     out.close();
 
-//    for (int k = 1; k < S.n_cycle+1; ++k) {
-//        std::cout << k << " " << S.s_cycle[k]<<  " " << S.l_cycle[k]<<"\n ";
-//    }
+    for (int j = 0; j <S.u_cycle; ++j) {
+        std::cout  << S.s_cycle[j]<<  " " << S.l_cycle[j]<<"\n";
+    }
 
-    m_tr = 0;
-    m_v = 0;
-    m_hash.clear();
-
-//    typedef std::map<int, std::list<double*>>::const_iterator MapIterator;
-//    for (MapIterator iter = m_hash.begin(); iter != m_hash.end(); iter++)
-//    {
-//        std::cout << "Key: " << iter->first << "   " << "Values:" << " ";
-//        typedef std::list<double*>::const_iterator ListIterator;
-//        for (ListIterator list_iter = iter->second.begin(); list_iter != iter->second.end(); list_iter++)
-//        {std::cout << " " << **list_iter ;}
-//        std::cout << "\n ";
-//}
 }
 
 
 // деструктор
 Lorenz::~Lorenz ()
 {
-//    if (m_tr != 0){
-//        delete [] m_tr;}
-  //  delete [] m_v;
+    if (m_tr != 0){
+        delete [] m_tr;}
+    delete [] m_v;
     m_hash.clear();
 }
