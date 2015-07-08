@@ -32,8 +32,12 @@ Lorenz::Lorenz (void)
     S.l_cycle =  new double [100000];
     S.s_cycle =  new int [100000];
 
-    //Счетчик сдвига
-    c_done = 0;
+    //Показатель перехода на следуюшую тракторию
+    Cycle_cheсk = 0;
+
+    //количество вычисленных точек
+    num_main = 0;
+
 }
 
 
@@ -58,6 +62,8 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b)
     // Шаг решетки
     a=_a;
     b=_b;
+
+    num_first = num_main;
 
     // создание массива точек фазовой траектории
     m_tr = new (std::nothrow) double [m_dim * m_n];
@@ -84,20 +90,18 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b)
             HashFun(np);}
 
         //Если обнаржуен цикл, то вычисление заканчиывается.
-        if (S.n_cycle > c_done) {
-
-            c_done = S.n_cycle;
-
+        if (S.n_cycle > Cycle_cheсk) {
+            Cycle_cheсk = S.n_cycle;
             break;
         }
 
-
+        num_main+=1; // мерация точки
     }
 
 
     m_tr = 0;
     m_v = 0;
-    m_hash.clear();
+    //m_hash.clear();
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -212,24 +216,25 @@ void Lorenz::HashFun (double* _np){
     int hp =((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n; //при мелкой сетке выходит за границы - пока проблема не решена
 
 
-    std::list<double*>::iterator it;  //Созадние итератора
-    int n_n=0; //дополнительная переменная для подсчетка кол-ва совпадений координат между двух точек
+    std::list<std::pair<double*,int>>::iterator it;  //Созадние итератора
 
     //Проверка коодинат
     if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
 
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
 
-            n_n=memcmp(*it, _np, m_dim*sizeof(_np)); //проверям по памяти
+            if (memcmp(std::get<0>(*it), _np, m_dim*sizeof(_np)) == 0)
+            {
+                if(std::get<1>(*it) > num_first){
+                    S.collect(_np, std::get<0>(*it), m_dim);
+                }
 
-            if (n_n == 0) {
-                S.collect(_np, *it, m_dim); //При совпадении координат, собираем данные о цикле
+                S.n_cycle+=1;
             }
         }
     }
-
     //Запись координаты
-    {m_hash[hp].push_back(_np);}
+    m_hash[hp].push_back(std::make_pair(_np,num_main));
 }
 
 

@@ -21,9 +21,6 @@ public:
     //Количество циклов
     int n_cycle;
 
-    //массив первых элемнтов циклов
-    std::list <double> firsts;
-
     //Уникальных циклов
     int u_cycle;
 
@@ -32,7 +29,6 @@ public:
     //Сбор статистики о цикле
     void collect(double*, double*, int);
 
-    bool check();
 
 };
 

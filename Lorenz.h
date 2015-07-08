@@ -62,8 +62,9 @@ private:
         int m_dim;
 
         //
-        int c_done;
-
+        int Cycle_cheсk;
+        int num_main; //сквозная нумерация
+        int num_first; //номер начальной точки вычисления
 //____________________________________
 
     // Метод Рунге-Кутта
@@ -120,8 +121,8 @@ private:
         //
         void HashFun (double*);
 
-        // хэш-массив
-        std::map<int,std::list<double*>> m_hash;
+        // хэш-массив Это карта листов пар!
+        std::map<int,std::list<std::pair<double*,int>>> m_hash;
 
         // Размер хэш-функции
         int h_n;
