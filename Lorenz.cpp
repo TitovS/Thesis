@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
-
+#include <random>
 
 // конструктор
 Lorenz::Lorenz (void)
@@ -38,6 +38,8 @@ Lorenz::Lorenz (void)
     //количество вычисленных точек
     num_main = 0;
 
+    vector =  new double [3];
+    dot =  new double [3];
 }
 
 
@@ -51,7 +53,7 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b)
+void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b, bool cycle)
 {
     // шаг метода
     m_dt = _dt;
@@ -85,23 +87,27 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b)
         Runge_Cutta(np, cp);
 
         //дискретизация при шаге на решетке
-        if (i%b == 0) {
+        if (i%b == 0 ) {
             GridTr(np);
             HashFun(np);}
 
         //Если обнаржуен цикл, то вычисление заканчиывается.
         if (S.n_cycle > Cycle_cheсk) {
             Cycle_cheсk = S.n_cycle;
+
+
+
+
             break;
         }
 
-        num_main+=1; // мерация точки
+        num_main+=1; // нумерация точки
     }
 
-
-    m_tr = 0;
-    m_v = 0;
-    //m_hash.clear();
+    if (!cycle){
+        m_tr = 0;
+        m_v = 0;
+    }
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -266,11 +272,35 @@ void Lorenz::Save (int _be, int _dn, int _en) {
 }
 
 
+
+void Lorenz::GetLine() {
+
+    double x[] = {1,1,1};
+
+    GetTr(x,0.065, 265000, 0.065 ,10, true);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_int_distribution<int> distribution(1, num_main);
+    int r = distribution(generator);
+
+    for (int i = 0; i < m_dim; ++i) {
+        dot[i] =m_tr[(num_main- 1) * m_dim + i];
+        vector[i] = m_tr[(num_main- 1) * m_dim + i -r] - m_tr[(num_main- 1) * m_dim + i];
+    }
+
+    m_hash.clear();
+}
+
+
 // деструктор
 Lorenz::~Lorenz ()
 {
     if (m_tr != 0){
         delete [] m_tr;}
     delete [] m_v;
+    delete [] vector;
+    delete [] dot;
     m_hash.clear();
+    m_tr = 0;
+    m_v = 0;
 }
