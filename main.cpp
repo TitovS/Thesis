@@ -15,19 +15,17 @@ int main (void) {
     L.SetParam(8. / 3., 10, 28); // b, sigma, r
     L.GetLine();
 
-    double* x = new double[3];
+    double* x = new double[L.m_dim];
 
-    for (int j = 0; j < 3; ++j) {
-        x[j] = L.dot[j];
-    }
+    memcpy (x, L.dot, L.m_dim * sizeof (double));
 
     double t = 0.01;
 
     for (int i = 0; i < 1000; ++i) {
 
-        L.GetTr(x, 0.0065, 265000, 0.0065 ,10); // шаг метода, количество точек , величина решетки. шаг на решетке
+        L.GetTr(x, 0.0065, 0.0065 ,10); // шаг метода, количество точек , величина решетки. шаг на решетке
 
-        for (int j = 0; j < 3; ++j) {
+        for (int j = 0; j < L.m_dim; ++j) {
             x[j] = L.vector[j] * t - L.dot[j];
         }
 

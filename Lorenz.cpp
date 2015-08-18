@@ -14,9 +14,7 @@ Lorenz::Lorenz (void)
 
 
     // количество точек в траектории
-    m_n = 0;
-
-    m_tr=0;
+    m_n = 8000*m_dim;
 
     // хэш-значения
     p1=73856093;
@@ -24,7 +22,8 @@ Lorenz::Lorenz (void)
     p3=83492791;
 
     // Размер хэш таблицы
-    h_n=10000;
+    h_n=100000;
+    m_hash = new std::list<std::pair<double*,int>> [h_n];
 
     // Инициализация класса статистики
     S.n_cycle=0;
@@ -53,31 +52,60 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b, bool cycle)
+void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
 {
     // шаг метода
     m_dt = _dt;
-
-    // количество вычисляемых точек
-    m_n = _n;
 
     // Шаг решетки
     a=_a;
     b=_b;
 
-    num_first = num_main;
+    num_first = num_main; // начальная точка вычисления
 
     // создание массива точек фазовой траектории
-    m_tr = new (std::nothrow) double [m_dim * m_n];
+    double* m_tr1 = new (std::nothrow) double [m_n]; // Поменять способ задавать массив
+    double* m_tr2 = new (std::nothrow) double [m_n];
+    m_tr=m_tr1;
+
     m_v = new double [m_dim];
 
     // запись начальных условий
-    for (int i = 0; i < m_dim; i++)
-        m_tr [i] = _init [i];
+    memcpy (m_tr, _init, m_dim * sizeof (double));
+
 
     // вычисление траектории
-    for (int i = 0; i < m_n-1 ; i++)
+    //for (int i = 0; i < m_n-1 ; i++)
+    bool unique = true;
+    int i = 0;
+    int k = 0;
+
+    while (unique)
+
     {
+
+        if (i * m_dim >= m_n - m_dim) { //
+
+            if (k == 0) {
+                m_n = m_n * 2; //увеличение размера массива в двое
+                m_tr2 = new(std::nothrow) double[m_n];
+                memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
+                m_tr = m_tr2;
+                delete[] m_tr1;
+                k=1;
+            }
+
+            else{
+                m_n = m_n * 2; //увеличение размера массива в двое
+                m_tr1 = new(std::nothrow) double[m_n];
+                memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
+                m_tr = m_tr1;
+                delete[] m_tr2;
+                k=0;
+            }
+
+        }
+
         // указатель на текущую точку
         double* cp = m_tr + i * m_dim;
         // указатель на следующую точку
@@ -94,20 +122,26 @@ void Lorenz::GetTr (double* _init, double _dt, int _n, double _a, int _b, bool c
         //Если обнаржуен цикл, то вычисление заканчиывается.
         if (S.n_cycle > Cycle_cheсk) {
             Cycle_cheсk = S.n_cycle;
-
-
-
-
-            break;
+            unique = false;
         }
 
-        num_main+=1; // нумерация точки
+        num_main+=1; // сквозная нумерация точки
+        i+=1; // счетчик по массиву
+
+
+        //Проверка переполнености массива
+
+
+
     }
 
-    if (!cycle){
+    if (!baseline){
         m_tr = 0;
         m_v = 0;
     }
+
+
+
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -151,9 +185,10 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
     }
 
     for (int i=0; i< m_dim; i++) {
-        _np[i]=_cp[i]+(m_dt/6)*(n[i]+2*n[i+m_dim]+2*n[i+2*m_dim]+n[i+3*m_dim])  ;
+        _np[i]=_cp[i]+(m_dt/6)*(n[i]+2*n[i+m_dim]+2*n[i+2*m_dim]+n[i+3*m_dim]) ;
     }
 
+    delete [] tp;
 }
 
 // вычисление фазовой скорости в заданной точке
@@ -213,26 +248,27 @@ void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
 void Lorenz::HashFun (double* _np){
 
     //Хэширование полученной точки
-    int h[m_dim];
+    long h[m_dim];
 
     for (int i = 0; i < m_dim; ++i) {
         h[i]=_np[i]*1/a; //переходы в целочисленные значения для проведения побитовых операций
     }
 
-    int hp =((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n; //при мелкой сетке выходит за границы - пока проблема не решена
-
+    long hp =abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //TODO Он временами выдает отрицательные результаты, веростно выходит за границы
 
     std::list<std::pair<double*,int>>::iterator it;  //Созадние итератора
 
     //Проверка коодинат
     if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
-
+        //идем по списку из пар которые назодятся по ключу
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
-
+            //сравниваем значения (гет 0)
             if (memcmp(std::get<0>(*it), _np, m_dim*sizeof(_np)) == 0)
             {
+                //проверяем, что это новый цикл
                 if(std::get<1>(*it) > num_first){
-                    S.collect(_np, std::get<0>(*it), m_dim);
+
+                    S.collect(_np, &m_tr[std::get<1>(*it)], m_dim, num_main - std::get<1>(*it));
                 }
 
                 S.n_cycle+=1;
@@ -277,18 +313,25 @@ void Lorenz::GetLine() {
 
     double x[] = {1,1,1};
 
-    GetTr(x,0.065, 265000, 0.065 ,10, true);
+    GetTr(x, 0.065, 0.065 ,10, true);
+
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
     std::uniform_int_distribution<int> distribution(1, num_main);
     int r = distribution(generator);
 
+
+    memcpy (dot, &m_tr[(num_main- 1) * m_dim],m_dim * sizeof (double));
+
     for (int i = 0; i < m_dim; ++i) {
-        dot[i] =m_tr[(num_main- 1) * m_dim + i];
-        vector[i] = m_tr[(num_main- 1) * m_dim + i -r] - m_tr[(num_main- 1) * m_dim + i];
+    //    dot[i] =m_tr[(num_main- 1) * m_dim + i];
+        vector[i] = m_tr[(num_main- 1) * m_dim + i - r] - m_tr[(num_main- 1) * m_dim + i];
     }
 
-    m_hash.clear();
+    delete [] m_hash;
+    num_main = 0;
+    m_hash = new std::list<std::pair<double*,int>> [h_n];
+
 }
 
 
@@ -297,10 +340,13 @@ Lorenz::~Lorenz ()
 {
     if (m_tr != 0){
         delete [] m_tr;}
+
     delete [] m_v;
     delete [] vector;
     delete [] dot;
-    m_hash.clear();
+    delete [] m_hash;
+
     m_tr = 0;
     m_v = 0;
+    m_n = 8000*m_dim;
 }

@@ -32,7 +32,7 @@ public:
         // double - шаг рештки
         // int - шаг на решетке
         // bool - получение траектории (true) или получение циклов(false)
-        void GetTr (double*, double, int, double, int, bool = false);
+        void GetTr (double*, double, double, int, bool = false);
 
 
     // сохранение траектории в файл
@@ -56,7 +56,8 @@ public:
         double* vector; //направляющий вектор
         double* dot; //точка на прямой
 
-
+    // размерность системы
+        int m_dim;
 
 
 private:
@@ -68,9 +69,6 @@ private:
         double m_b;
         double m_sigma;
         double m_r;
-
-        // размерность системы
-        int m_dim;
 
         //показатели перехода по циклам
         int Cycle_cheсk; //переходов совершено
@@ -133,7 +131,7 @@ private:
         void HashFun (double*);
 
         // хэш-массив Это карта листов пар!
-        std::map<int,std::list<std::pair<double*,int>>> m_hash;
+       std::list<std::pair<double*,int>>* m_hash;
 
         // Размер хэш-функции
         int h_n;

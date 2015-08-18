@@ -7,7 +7,7 @@
 #include "math.h"
 #include <fstream>
 
-void Stat::collect(double* _np, double* _cp, int m_dim) {
+void Stat::collect(double* _np, double* _cp, int m_dim, int num_cycle) {
 
     u_cycle += 1; // счетчик кол - ва циклов
 
@@ -22,7 +22,7 @@ void Stat::collect(double* _np, double* _cp, int m_dim) {
     out.open(pchar, std::ofstream::out | std::ofstream::trunc);
 
     //Проходим по массиву траекторий
-    while (_cp != _np) {
+    for (int j = 0; j < num_cycle; ++j){
 
 
         for (int i = 0; i < m_dim; ++i) {

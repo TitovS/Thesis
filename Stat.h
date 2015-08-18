@@ -27,7 +27,7 @@ public:
 //Функции
 
     //Сбор статистики о цикле
-    void collect(double*, double*, int);
+    void collect(double*, double*, int, int);
 
 
 };
