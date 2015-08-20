@@ -10,9 +10,6 @@ Lorenz::Lorenz (void)
     // размерность системы
     m_dim = 3;
 
-    // вектор фазовой скорости
-
-
     // количество точек в траектории
     m_n = 8000*m_dim;
 
@@ -32,7 +29,7 @@ Lorenz::Lorenz (void)
     S.s_cycle =  new int [100000];
 
     //Показатель перехода на следуюшую тракторию
-    Cycle_cheсk = 0;
+    Cycles_done = 0;
 
     //количество вычисленных точек
     num_main = 0;
@@ -54,85 +51,57 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 // вычисление фазовой траектории
 void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
 {
-    // шаг метода
+    // Шаг вычислительного метода
     m_dt = _dt;
 
-    // Шаг решетки
+    // Параметры решетки
     a=_a;
     b=_b;
 
-    num_first = num_main; // начальная точка вычисления
+    num_first = num_main; // присвоение начальной точки данной траектории
 
-    // создание массива точек фазовой траектории
-    double* m_tr1 = new (std::nothrow) double [m_n]; // Поменять способ задавать массив
+    // Создание массивов точек фазовой траектории
+    double* m_tr1 = new (std::nothrow) double [m_n];
     double* m_tr2 = new (std::nothrow) double [m_n];
+    // Указатель на акутальный масссив
     m_tr=m_tr1;
 
+    // Массив для вчисления точек
     m_v = new double [m_dim];
 
-    // запись начальных условий
+    // Запись начальных условий
     memcpy (m_tr, _init, m_dim * sizeof (double));
 
 
-    // вычисление траектории
-    //for (int i = 0; i < m_n-1 ; i++)
-    bool unique = true;
-    int i = 0;
-    int k = 0;
+    bool cycle = false; // Инвариант цикла - вычисление до нахождения цикла
 
-    while (unique)
+    int k = 0; // Иднидактор динмачиеского массива 0 - m_tr1 / 1 - m_tr2 | Смотри DynamicMemory
+
+    while (!cycle)
 
     {
+        DynamicMemory(num_main,k,m_tr1,m_tr2); // Проверка и увеличение массива в случае необходимости
 
-        if (i * m_dim >= m_n - m_dim) { //
+        // Указатель на текущую точку
+        double* cp = m_tr + num_main * m_dim;
+        // Указатель на следующую точку
+        double* np = m_tr + (num_main + 1) * m_dim;
 
-            if (k == 0) {
-                m_n = m_n * 2; //увеличение размера массива в двое
-                m_tr2 = new(std::nothrow) double[m_n];
-                memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
-                m_tr = m_tr2;
-                delete[] m_tr1;
-                k=1;
-            }
-
-            else{
-                m_n = m_n * 2; //увеличение размера массива в двое
-                m_tr1 = new(std::nothrow) double[m_n];
-                memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
-                m_tr = m_tr1;
-                delete[] m_tr2;
-                k=0;
-            }
-
-        }
-
-        // указатель на текущую точку
-        double* cp = m_tr + i * m_dim;
-        // указатель на следующую точку
-        double* np = m_tr + (i + 1) * m_dim;
-
-        // вычисление следующей точки методом Рунге-Кутта и Дискретизация полученной траектории
+        // Вычисление следующей точки методом Рунге-Кутта
         Runge_Cutta(np, cp);
 
         //дискретизация при шаге на решетке
-        if (i%b == 0 ) {
+        if (num_main%b == 0 ) {
             GridTr(np);
-            HashFun(np);}
+            CycleCheck(np);}
 
         //Если обнаржуен цикл, то вычисление заканчиывается.
-        if (S.n_cycle > Cycle_cheсk) {
-            Cycle_cheсk = S.n_cycle;
-            unique = false;
+        if (S.n_cycle > Cycles_done) {
+            Cycles_done = S.n_cycle;
+            cycle = true;
         }
 
         num_main+=1; // сквозная нумерация точки
-        i+=1; // счетчик по массиву
-
-
-        //Проверка переполнености массива
-
-
-
     }
 
     if (!baseline){
@@ -245,33 +214,53 @@ void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
 }
 
 // Хэш функция
-void Lorenz::HashFun (double* _np){
+int Lorenz::HashFun(double *_np) {
 
     //Хэширование полученной точки
-    long h[m_dim];
+    int h[m_dim];
 
     for (int i = 0; i < m_dim; ++i) {
         h[i]=_np[i]*1/a; //переходы в целочисленные значения для проведения побитовых операций
     }
 
-    long hp =abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //TODO Он временами выдает отрицательные результаты, веростно выходит за границы
+    return abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //TODO Он временами выдает отрицательные результаты, веростно выходит за границы
+    
+}
+
+
+
+
+
+void Lorenz::CycleCheck(double *_np){
+
+    int hp = HashFun(_np); // Присвоение
 
     std::list<std::pair<double*,int>>::iterator it;  //Созадние итератора
 
     //Проверка коодинат
+
     if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
         //идем по списку из пар которые назодятся по ключу
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
             //сравниваем значения (гет 0)
-            if (memcmp(std::get<0>(*it), _np, m_dim*sizeof(_np)) == 0)
-            {
-                //проверяем, что это новый цикл
-                if(std::get<1>(*it) > num_first){
 
-                    S.collect(_np, &m_tr[std::get<1>(*it)], m_dim, num_main - std::get<1>(*it));
+            std:: cout << m_tr[std::get<1>(*it)*m_dim] << std::endl;
+
+
+            if ((m_tr[std::get<1>(*it)*m_dim] == *_np)) {
+
+                if (m_tr[std::get<1>(*it) + 1] == *(_np + 1)) {
+
+                    if (m_tr[std::get<1>(*it) + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
+
+                        if (std::get<1>(*it) > num_first) {
+
+                            S.collect(_np, &m_tr[std::get<1>(*it)], m_dim, num_main - std::get<1>(*it));
+                        }
+
+                        S.n_cycle += 1;
+                    }
                 }
-
-                S.n_cycle+=1;
             }
         }
     }
@@ -335,6 +324,33 @@ void Lorenz::GetLine() {
 }
 
 
+void Lorenz::DynamicMemory(int i, int k, double* m_tr1, double* m_tr2 ) {
+
+    if (i * m_dim >= m_n - m_dim) { //
+
+        if (k == 0) {
+            m_n = m_n * 2; //увеличение размера массива в двое
+            m_tr2 = new(std::nothrow) double[m_n];
+            memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
+            m_tr = m_tr2;
+            delete[] m_tr1;
+            k=1;
+        }
+
+        else{
+            m_n = m_n * 2; //увеличение размера массива в двое
+            m_tr1 = new(std::nothrow) double[m_n];
+            memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
+            m_tr = m_tr1;
+            delete[] m_tr2;
+            k=0;
+        }
+
+    }
+
+
+
+}
 // деструктор
 Lorenz::~Lorenz ()
 {
