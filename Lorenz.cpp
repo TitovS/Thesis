@@ -249,9 +249,9 @@ void Lorenz::CycleCheck(double *_np){
 
             if ((m_tr[std::get<1>(*it)*m_dim] == *_np)) {
 
-                if (m_tr[std::get<1>(*it) + 1] == *(_np + 1)) {
+                if (m_tr[std::get<1>(*it)*m_dim + 1] == *(_np + 1)) {
 
-                    if (m_tr[std::get<1>(*it) + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
+                    if (m_tr[std::get<1>(*it)*m_dim + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
 
                         if (std::get<1>(*it) > num_first) {
 
