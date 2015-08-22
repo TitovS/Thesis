@@ -20,7 +20,7 @@ Lorenz::Lorenz (void)
 
     // Размер хэш таблицы
     h_n=100000;
-    m_hash = new std::list<std::pair<double*,int>> [h_n];
+    m_hash = new std::list<int> [h_n];
 
     // Инициализация класса статистики
     S.n_cycle=0;
@@ -225,7 +225,7 @@ int Lorenz::HashFun(double *_np) {
         h[i]=_np[i]*1/a; //переходы в целочисленные значения для проведения побитовых операций
     }
 
-    return abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //TODO Он временами выдает отрицательные результаты, веростно выходит за границы
+    return abs(((h[0]*p1)^(h[1]*p2)^(h[2]*p3))%h_n); //TODO Он временами выдает отрицательные результаты, вероятно выходит за границы
     
 }
 
@@ -237,7 +237,7 @@ void Lorenz::CycleCheck(double *_np){
 
     int hp = HashFun(_np); // Присвоение
 
-    std::list<std::pair<double*,int>>::iterator it;  //Созадние итератора
+    std::list<int>::iterator it;  //Созадние итератора TODO Пары можно убрать, теперь мы можем просто сохарнять номер
 
 
     if (*_np != m_tr[(num_main+1)*m_dim]) { std::cout << "error"; }
@@ -248,15 +248,15 @@ void Lorenz::CycleCheck(double *_np){
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
             //сравниваем значения (гет 0)
 
-            if ((m_tr[std::get<1>(*it)*m_dim] == *_np)) {
+            if ((m_tr[*it*m_dim] == *_np)) {
 
-                if (m_tr[std::get<1>(*it)*m_dim + 1] == *(_np + 1)) {
+                if (m_tr[*it*m_dim + 1] == *(_np + 1)) {
 
-                    if (m_tr[std::get<1>(*it)*m_dim + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
+                    if (m_tr[*it*m_dim + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
 
-                        if (std::get<1>(*it) > num_first) {
+                        if (*it > num_first) {
 
-                            S.collect(_np, &m_tr[std::get<1>(*it)], m_dim, num_main - std::get<1>(*it));
+                            S.collect(_np, &m_tr[*it], m_dim, num_main - *it);
                         }
 
                         S.n_cycle += 1;
@@ -266,7 +266,7 @@ void Lorenz::CycleCheck(double *_np){
         }
     }
     //Запись координаты
-    m_hash[hp].push_back(std::make_pair(_np,(num_main+1)));
+    m_hash[hp].push_back(num_main+1);
 }
 
 

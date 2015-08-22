@@ -136,7 +136,7 @@ private:
         void CycleCheck(double *);
 
         // хэш-массив
-        std::list<std::pair<double*,int>>* m_hash;
+        std::list<int>* m_hash;
 
         // Размер хэш-функции
         int h_n;
