@@ -9,7 +9,7 @@
 
 void Stat::collect(double* _np, double* _cp, int m_dim, int num_cycle) {
 
-    u_cycle += 1; // счетчик кол - ва циклов
+
 
     double x = 0; // длинна между точками цикла
 
@@ -38,6 +38,8 @@ void Stat::collect(double* _np, double* _cp, int m_dim, int num_cycle) {
 
         _cp += m_dim;
     }
+    u_cycle += 1; // счетчик кол - ва циклов
+
 }
 
 

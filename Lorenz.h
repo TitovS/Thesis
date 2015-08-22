@@ -46,7 +46,7 @@ public:
         void GetLine();
 
     // Динамическое увеличение массива
-        void DynamicMemory(int, int, double*, double*);
+        void DynamicMemory(int, int&, double*&, double*&);
 
     // Деконструктор
         ~Lorenz ();

@@ -62,7 +62,7 @@ void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
 
     // Создание массивов точек фазовой траектории
     double* m_tr1 = new (std::nothrow) double [m_n];
-    double* m_tr2 = new (std::nothrow) double [m_n];
+    double* m_tr2 = 0;// = new (std::nothrow) double [m_n];
     // Указатель на акутальный масссив
     m_tr=m_tr1;
 
@@ -108,9 +108,11 @@ void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
         m_tr = 0;
         m_v = 0;
     }
-
-
-
+    if (k == 0) {
+        delete[] m_tr1;
+    } else {
+        delete[] m_tr2;
+    }
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -237,15 +239,14 @@ void Lorenz::CycleCheck(double *_np){
 
     std::list<std::pair<double*,int>>::iterator it;  //Созадние итератора
 
+
+    if (*_np != m_tr[(num_main+1)*m_dim]) { std::cout << "error"; }
     //Проверка коодинат
 
     if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
         //идем по списку из пар которые назодятся по ключу
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
             //сравниваем значения (гет 0)
-
-            std:: cout << m_tr[std::get<1>(*it)*m_dim] << std::endl;
-
 
             if ((m_tr[std::get<1>(*it)*m_dim] == *_np)) {
 
@@ -265,7 +266,7 @@ void Lorenz::CycleCheck(double *_np){
         }
     }
     //Запись координаты
-    m_hash[hp].push_back(std::make_pair(_np,num_main));
+    m_hash[hp].push_back(std::make_pair(_np,(num_main+1)));
 }
 
 
@@ -300,49 +301,39 @@ void Lorenz::Save (int _be, int _dn, int _en) {
 
 void Lorenz::GetLine() {
 
-    double x[] = {1,1,1};
+    dot[0] = sqrt((m_r-1)*m_b) ;
+    dot[1] =dot[0];
+    dot[2] =m_r-1;
 
-    GetTr(x, 0.065, 0.065 ,10, true);
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(seed);
-    std::uniform_int_distribution<int> distribution(1, num_main);
-    int r = distribution(generator);
-
-
-    memcpy (dot, &m_tr[(num_main- 1) * m_dim],m_dim * sizeof (double));
-
-    for (int i = 0; i < m_dim; ++i) {
-    //    dot[i] =m_tr[(num_main- 1) * m_dim + i];
-        vector[i] = m_tr[(num_main- 1) * m_dim + i - r] - m_tr[(num_main- 1) * m_dim + i];
-    }
-
-    delete [] m_hash;
-    num_main = 0;
-    m_hash = new std::list<std::pair<double*,int>> [h_n];
-
+    vector[0] = -1*(dot[0] + dot[0]);
+    vector[1] = vector[0];
+    vector[2] = 0;
 }
 
 
-void Lorenz::DynamicMemory(int i, int k, double* m_tr1, double* m_tr2 ) {
+void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
 
     if (i * m_dim >= m_n - m_dim) { //
 
         if (k == 0) {
+            //delete[] m_tr2;
             m_n = m_n * 2; //увеличение размера массива в двое
             m_tr2 = new(std::nothrow) double[m_n];
             memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
             m_tr = m_tr2;
             delete[] m_tr1;
+            m_tr1 = NULL;
             k=1;
         }
 
         else{
+            //delete[] m_tr1;
             m_n = m_n * 2; //увеличение размера массива в двое
             m_tr1 = new(std::nothrow) double[m_n];
             memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
             m_tr = m_tr1;
             delete[] m_tr2;
+            m_tr2 = NULL;
             k=0;
         }
 
