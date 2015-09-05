@@ -7,18 +7,36 @@
 //
 
 #include "Lorenz.h"
+#include "iostream"
+
 
 int main (void) {
     Lorenz L;
 
     L.SetParam(8. / 3., 10, 28); // b, sigma, r
+    L.GetLine();
 
-    double x[] = {1, 1, 1}; // начальные условия
+    double* x = new double[L.m_dim];
 
-    L.GetTr(x, 0.001, 100001); // шаг метода, количество точек
-    char* t= "tr1";
-    L.Save(t, 0, 3, 100000); // имя файла, начальная точка, интервал пропуска, конечная точка
+    memcpy (x, L.dot, L.m_dim * sizeof (double));
 
+    double t = 0.;
+
+    for (int i = 0; i < 200; ++i) {
+
+        L.GetTr(x, 0.065 ,10); // шаг метода, величина решетки, шаг на решетке
+
+        for (int j = 0; j < L.m_dim; ++j) {
+            x[j] = L.dot[j] + L.vector[j] * t;
+
+        }
+
+        //std::cout << x[0] << " "<< std::endl;
+        t+=0.065;
+
+    }
+
+    L.Save();
 
     return (0);
 }
