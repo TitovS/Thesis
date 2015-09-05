@@ -22,21 +22,21 @@ int main (void) {
 
     double t = 0.;
 
-    for (int i = 0; i < 1500; ++i) {
+    for (int i = 0; i < 200; ++i) {
 
-        L.GetTr(x, 0.065, 0.065 ,10); // шаг метода, количество точек , величина решетки. шаг на решетке
+        L.GetTr(x, 0.065 ,10); // шаг метода, величина решетки, шаг на решетке
 
         for (int j = 0; j < L.m_dim; ++j) {
             x[j] = L.dot[j] + L.vector[j] * t;
 
         }
 
-        std::cout << x[0] << " "<< std::endl;
-        t+=0.00065;
+        //std::cout << x[0] << " "<< std::endl;
+        t+=0.065;
 
     }
 
-    L.Save(0, 3, 100000);
+    L.Save();
 
     return (0);
 }

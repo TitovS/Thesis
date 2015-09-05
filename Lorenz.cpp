@@ -34,6 +34,12 @@ Lorenz::Lorenz (void)
     //количество вычисленных точек
     num_main = 0;
 
+    m_tr1 = new (std::nothrow) double [m_n];
+    m_tr2 = 0;// = new (std::nothrow) double [m_n];
+    k = 0;
+    m_tr=m_tr1;
+
+
     vector =  new double [3];
     dot =  new double [3];
 }
@@ -49,10 +55,10 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
+void Lorenz::GetTr (double* _init, double _a, int _b)
 {
     // Шаг вычислительного метода
-    m_dt = _dt;
+    m_dt = _a*_b;
 
     // Параметры решетки
     a=_a;
@@ -60,27 +66,19 @@ void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
 
     num_first = num_main; // присвоение начальной точки данной траектории
 
-    // Создание массивов точек фазовой траектории
-    double* m_tr1 = new (std::nothrow) double [m_n];
-    double* m_tr2 = 0;// = new (std::nothrow) double [m_n];
-    // Указатель на акутальный масссив
-    m_tr=m_tr1;
-
     // Массив для вчисления точек
     m_v = new double [m_dim];
 
     // Запись начальных условий
-    memcpy (m_tr, _init, m_dim * sizeof (double));
-
+    GridTr(_init);
+    memcpy (&m_tr[num_first*m_dim], _init, m_dim * sizeof (double));
 
     bool cycle = false; // Инвариант цикла - вычисление до нахождения цикла
-
-    int k = 0; // Иднидактор динмачиеского массива 0 - m_tr1 / 1 - m_tr2 | Смотри DynamicMemory
 
     while (!cycle)
 
     {
-        DynamicMemory(num_main,k,m_tr1,m_tr2); // Проверка и увеличение массива в случае необходимости
+        DynamicMemory(num_main, k, m_tr1, m_tr2); // Проверка и увеличение массива в случае необходимости
 
         // Указатель на текущую точку
         double* cp = m_tr + num_main * m_dim;
@@ -91,7 +89,7 @@ void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
         Runge_Cutta(np, cp);
 
         //дискретизация при шаге на решетке
-        if (num_main%b == 0 ) {
+        if (num_main%1 == 0 ) {
             GridTr(np);
             CycleCheck(np);}
 
@@ -104,15 +102,6 @@ void Lorenz::GetTr (double* _init, double _dt, double _a, int _b, bool baseline)
         num_main+=1; // сквозная нумерация точки
     }
 
-    if (!baseline){
-        m_tr = 0;
-        m_v = 0;
-    }
-    if (k == 0) {
-        delete[] m_tr1;
-    } else {
-        delete[] m_tr2;
-    }
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -166,16 +155,24 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
 void Lorenz::PhVelocity (double*& _cp)
 
 {
+
+
     m_v [0] = m_sigma * (_cp [1] - _cp [0]);
     m_v [1] = (m_r - _cp [2]) * _cp [0] - _cp [1];
     m_v [2] = _cp [0] * _cp [1] - m_b * _cp [2];
+
+    double X = sqrt(m_v[0]*m_v[0] + m_v[1]*m_v[1] +m_v[2]*m_v[2]);
+
+    m_v [0] = m_v[0]/X;
+    m_v [1] = m_v[1]/X;
+    m_v [2] = m_v[2]/X;
 }
 
 
 void Lorenz::GridTr (double*& _np)
 {
-    for (int i = 0; i<m_dim; i++) {
-        _np[i] = (round(_np[i]/a))*a +a/2;
+    for (int i = 0; i< m_dim; i++) {
+        _np[i] = (floor(_np[i]/a))*a +a/2;
     }
 }
 
@@ -237,16 +234,15 @@ void Lorenz::CycleCheck(double *_np){
 
     int hp = HashFun(_np); // Присвоение
 
-    std::list<int>::iterator it;  //Созадние итератора TODO Пары можно убрать, теперь мы можем просто сохарнять номер
+    std::list<int>::iterator it;  //Созадние итератора
 
 
-    if (*_np != m_tr[(num_main+1)*m_dim]) { std::cout << "error"; }
+    //if (*_np != m_tr[(num_main+1)*m_dim]) { std::cout << "error"; }
     //Проверка коодинат
 
     if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
-        //идем по списку из пар которые назодятся по ключу
+        //идем по списку которые назодятся по ключу
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
-            //сравниваем значения (гет 0)
 
             if ((m_tr[*it*m_dim] == *_np)) {
 
@@ -254,12 +250,13 @@ void Lorenz::CycleCheck(double *_np){
 
                     if (m_tr[*it*m_dim + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
 
+                        S.n_cycle += 1;
                         if (*it > num_first) {
 
                             S.collect(_np, &m_tr[*it], m_dim, num_main - *it);
                         }
 
-                        S.n_cycle += 1;
+
                     }
                 }
             }
@@ -273,7 +270,7 @@ void Lorenz::CycleCheck(double *_np){
 
 
 // сохранение траектории в файл
-void Lorenz::Save (int _be, int _dn, int _en) {
+void Lorenz::Save () {
     //S.save;
     //создание файлового потока вывода
     std::ofstream out;
@@ -282,19 +279,20 @@ void Lorenz::Save (int _be, int _dn, int _en) {
     out.open("tr1.txt");
 
     // вывод результата
-    for (int i = _be; i < _en; i += _dn * m_dim) {
+    for (int i = 0; i < num_main; i +=  m_dim) {
         for (int j = 0; j < m_dim; j++) {
-          //  out << m_tr[i * m_dim + j] << " ";
+            out << m_tr[i * m_dim + j] << " ";
         }
-    //    out << "\n";
+        out << "\n";
     }
 // закрытие файла
     out.close();
 
     for (int j = 0; j <S.u_cycle; ++j) {
-        std::cout  << S.s_cycle[j]<<  " " << S.l_cycle[j]<<"\n";
+        if (S.s_cycle[j] > 40) {
+            std::cout << S.s_cycle[j] << " " << S.l_cycle[j] << "\n";
+        }
     }
-
 }
 
 
