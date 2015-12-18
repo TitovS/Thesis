@@ -7,17 +7,28 @@
 #include "math.h"
 #include <fstream>
 
-void Stat::collect(double* _np, double* _cp, int m_dim, int num_cycle) {
+void Stat::SInit() {
+
+    n_cycle = 0;
+    u_cycle = 0;
+    l_cycle = new double [100000]; //TODO Оформить динмаичесские массивы
+    s_cycle = new int [100000];
+
+}
 
 
+
+
+void Stat::collect(double* _cp, int m_dim, int num_cycle, int a_index) {
 
     double x = 0; // длинна между точками цикла
 
 
     //Создаем файл с номером цикла
     std::ofstream out;
+    std::string a = std::to_string(a_index);
     std::string s = std::to_string(u_cycle);
-    s += ".txt";
+    s = a + "_" + s + ".txt";
     char const *pchar = s.c_str();
     out.open(pchar, std::ofstream::out | std::ofstream::trunc);
 
@@ -39,11 +50,24 @@ void Stat::collect(double* _np, double* _cp, int m_dim, int num_cycle) {
         _cp += m_dim;
     }
     u_cycle += 1; // счетчик кол - ва циклов
+    out << "\n";
 
 }
 
+void Stat::Reset() {
+
+    u_cycle = 0;
+    n_cycle = 0;
+
+    memset(l_cycle,0,100000* sizeof(double));
+    memset(s_cycle,0,100000* sizeof(double));
 
 
+}
 
+Stat::~Stat(){
 
+    delete[] l_cycle;
+    delete[] s_cycle;
 
+}

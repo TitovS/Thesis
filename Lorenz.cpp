@@ -4,6 +4,7 @@
 #include <math.h>
 #include <random>
 
+
 // конструктор
 Lorenz::Lorenz (void)
 {
@@ -19,17 +20,8 @@ Lorenz::Lorenz (void)
     p3=83492791;
 
     // Размер хэш таблицы
-    h_n=100000;
+    h_n=100000;  //TODO динмаический хэш.
     m_hash = new std::list<int> [h_n];
-
-    // Инициализация класса статистики
-    S.n_cycle=0;
-    S.u_cycle=0;
-    S.l_cycle =  new double [100000];
-    S.s_cycle =  new int [100000];
-
-    //Показатель перехода на следуюшую тракторию
-    Cycles_done = 0;
 
     //количество вычисленных точек
     num_main = 0;
@@ -55,16 +47,17 @@ void Lorenz::SetParam (double _p1, double _p2, double _p3)
 
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _a, int _b)
+void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S, int i)
 {
     // Шаг вычислительного метода
     m_dt = _a*_b;
 
     // Параметры решетки
     a=_a;
-    b=_b;
+
 
     num_first = num_main; // присвоение начальной точки данной траектории
+    Cycles_done = S -> n_cycle;
 
     // Массив для вчисления точек
     m_v = new double [m_dim];
@@ -91,17 +84,18 @@ void Lorenz::GetTr (double* _init, double _a, int _b)
         //дискретизация при шаге на решетке
         if (num_main%1 == 0 ) {
             GridTr(np);
-            CycleCheck(np);}
+            CycleCheck(np, S, i);}
 
         //Если обнаржуен цикл, то вычисление заканчиывается.
-        if (S.n_cycle > Cycles_done) {
-            Cycles_done = S.n_cycle;
+        if (S -> n_cycle > Cycles_done) {
+            Cycles_done = S -> n_cycle;
             cycle = true;
         }
 
         num_main+=1; // сквозная нумерация точки
     }
 
+    delete[] m_v;
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -177,7 +171,7 @@ void Lorenz::GridTr (double*& _np)
 }
 
 // дикретизация полученной траектории методом Цпвд
-void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
+/*void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
 {
 
     double* x = new double [m_dim]; //Доп. переменная для создания точек
@@ -210,7 +204,8 @@ void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
     }
 
 
-}
+}*/
+
 
 // Хэш функция
 int Lorenz::HashFun(double *_np) {
@@ -230,7 +225,7 @@ int Lorenz::HashFun(double *_np) {
 
 
 
-void Lorenz::CycleCheck(double *_np){
+void Lorenz::CycleCheck(double *_np, Stat* S, int i){
 
     int hp = HashFun(_np); // Присвоение
 
@@ -244,16 +239,15 @@ void Lorenz::CycleCheck(double *_np){
         //идем по списку которые назодятся по ключу
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
 
-            if ((m_tr[*it*m_dim] == *_np)) {
+            if (m_tr[*it*m_dim] == *_np) {
 
                 if (m_tr[*it*m_dim + 1] == *(_np + 1)) {
 
-                    if (m_tr[*it*m_dim + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
+                    if (m_tr[*it*m_dim + 2] == *(_np + 2)) {
 
-                        S.n_cycle += 1;
+                        S -> n_cycle += 1;
                         if (*it > num_first) {
-
-                            S.collect(_np, &m_tr[*it], m_dim, num_main - *it);
+                            S -> collect(&m_tr[*it], m_dim, num_main - *it,i);
                         }
 
 
@@ -270,7 +264,7 @@ void Lorenz::CycleCheck(double *_np){
 
 
 // сохранение траектории в файл
-void Lorenz::Save () {
+void Lorenz::Save(Stat* S, int i) {
     //S.save;
     //создание файлового потока вывода
     std::ofstream out;
@@ -288,9 +282,9 @@ void Lorenz::Save () {
 // закрытие файла
     out.close();
 
-    for (int j = 0; j <S.u_cycle; ++j) {
-        if (S.s_cycle[j] > 40) {
-            std::cout << S.s_cycle[j] << " " << S.l_cycle[j] << "\n";
+    for (int j = 0; j < S -> u_cycle; ++j) { //TODO разбораться с тем как закрывать
+        if (S->s_cycle[j] > 40) {
+            std::cout << S->s_cycle[j] << " " << S->l_cycle[j] << "\n";
         }
     }
 }
@@ -321,10 +315,10 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
             m_tr = m_tr2;
             delete[] m_tr1;
             m_tr1 = NULL;
-            k=1;
+            k = 1;
         }
 
-        else{
+        else {
             //delete[] m_tr1;
             m_n = m_n * 2; //увеличение размера массива в двое
             m_tr1 = new(std::nothrow) double[m_n];
@@ -332,7 +326,7 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
             m_tr = m_tr1;
             delete[] m_tr2;
             m_tr2 = NULL;
-            k=0;
+            k = 0;
         }
 
     }
@@ -340,18 +334,51 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
 
 
 }
-// деструктор
-Lorenz::~Lorenz ()
-{
-    if (m_tr != 0){
-        delete [] m_tr;}
 
-    delete [] m_v;
-    delete [] vector;
-    delete [] dot;
-    delete [] m_hash;
 
-    m_tr = 0;
-    m_v = 0;
-    m_n = 8000*m_dim;
+//Обнуление параметров
+void Lorenz::Reset(){
+    m_hash->clear();
+
+    //количество вычисленных точек
+    num_main = 0;
+
+    if (k == 0 ){
+
+        memset(m_tr1 ,0, m_n* sizeof(double));
+        m_tr = m_tr1;
+        delete[] m_tr2;
+        m_tr2 = NULL;
+    }
+
+    else {
+
+        m_tr1 = new(std::nothrow) double[m_n];
+        memset(m_tr1 ,0, m_n* sizeof(double));
+        m_tr = m_tr1;
+        delete[] m_tr2;
+        m_tr2 = NULL;
+        k = 0;
+
+    }
+
+    memset(vector,0,3* sizeof(double));
+    memset(dot,0,3* sizeof(double));
+
 }
+
+Lorenz::~Lorenz(){
+
+    if (m_tr1 != 0){
+        delete[] m_tr1;}
+
+    if (m_tr2 != 0){
+        delete[] m_tr2;}
+
+    delete[] vector;
+    delete[] dot;
+    delete[] m_hash;
+
+}
+
+// деструктор

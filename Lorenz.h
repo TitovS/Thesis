@@ -28,11 +28,10 @@ public:
         // Параметры:
         // double* - массив начальных условий
         // double - шаг вычисления
-        // int - количество вычисляемых точек
-        // double - шаг рештки
+        // double - шаг решетки
         // int - шаг на решетке
-        // bool - получение траектории (true) или получение циклов(false)
-        void GetTr (double*, double, int);
+        // int - номер шага а
+        void GetTr (double*, double, int, Stat*, int );
 
 
     // Сохранение траектории в файл
@@ -40,7 +39,7 @@ public:
         // int - начальная точка
         // int - интервал пропуска точек
         // int - конечная точка
-        void Save ();
+        void Save (Stat*, int);
 
     // Функция составления уравнения прямой для свдига
         void GetLine();
@@ -48,11 +47,12 @@ public:
     // Динамическое увеличение массива
         void DynamicMemory(int, int&, double*&, double*&);
 
+    // Обнуление перменных
+
+        void Reset();
+
     // Деконструктор
         ~Lorenz ();
-
-    // Статистика системы
-        Stat S;
 
     // Пареметры уравнения свдига
         double* vector; //направляющий вектор
@@ -115,7 +115,7 @@ private:
         // Функция ЦПВД
         // double*& - текущая точка
         // double шаг решетки
-        void GridTrCPVD (double*&,double*& );
+        //void GridTrCPVD (double*&,double*& );
 
         // Фунция обынчая
         void GridTr (double*&);
@@ -124,7 +124,6 @@ private:
         double a;
 
         // Шаг на решетке
-        int b;
 
 //____________________________________
 
@@ -136,7 +135,8 @@ private:
 
         // Параметры
         // double* - полученная точка
-        void CycleCheck(double *);
+        // int - счетчик свдига по а
+        void CycleCheck(double *, Stat*, int i);
 
         // хэш-массив
         std::list<int>* m_hash;
