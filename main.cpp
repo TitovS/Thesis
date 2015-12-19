@@ -16,7 +16,7 @@ int main (void) {
     Lorenz* L = new Lorenz; // Создание класса аттрактора
 
     double a = 0.065; //Величина решетки
-    double eps = 0.001;
+    //double eps = 0.001;
     double *x = new double[L->m_dim];
 
 
@@ -39,7 +39,7 @@ int main (void) {
             t += 0.065;
         }
 
-        L->Save(S, i);// Сохранение траектории и вывод результатов
+        L->Save(S);// Сохранение траектории и вывод результатов
         std::cout << "\n";
 
         L->Reset();// Обновление класса аттрактора

@@ -232,7 +232,7 @@ void Lorenz::CycleCheck(double *_np, Stat* S){
                         S -> n_cycle += 1; // Цикл обнуаржуен
 
                         if (*it > num_first) { // Проверка на новизну цикла
-                            S -> collect(&m_tr[*it], m_dim, num_main - *it, a); // Новый цикл запиываем
+                            S -> collect(&m_tr[*it], m_dim, num_main - *it, a); // Ссылка на начальную точку цикла, размерность, размер цикла, размер решетки
                         }
                     }
                 }
@@ -240,12 +240,12 @@ void Lorenz::CycleCheck(double *_np, Stat* S){
         }
     }
 
-    //Запись начальной координаты цикла в лист
+    //Запись начальной координаты цикла в лист (нумерация акутальной точки выставляется в конце gettr)
     m_hash[hp].push_back(num_main+1);
 }
 
 // Сохранение траектории в файл
-void Lorenz::Save(Stat* S, int i) {
+void Lorenz::Save(Stat* S) {
     //S.save;
     //создание файлового потока вывода
     std::ofstream out;

@@ -32,15 +32,16 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index) {
         for (int i = 0; i < m_dim; ++i){
 
             x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
-            out << _cp[i] << " ";
+            out << _cp[i] << " "; //записываем в файл
 
         }
         out << "\n";
-        l_cycle[u_cycle] += sqrt(x);
-        s_cycle[u_cycle] += 1;
+
+        l_cycle[u_cycle] += sqrt(x); //длина
+        s_cycle[u_cycle] += 1; //кол-во точек в цикле
         x = 0;
 
-        _cp += m_dim;
+        _cp += m_dim; // переход к следующей точке
     }
     u_cycle += 1; // счетчик кол - ва циклов
     out << "\n";
