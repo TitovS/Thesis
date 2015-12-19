@@ -12,44 +12,38 @@
 
 int main (void) {
 
-    Stat S;
+    Stat* S = new Stat; // Создание класса статистики
+    Lorenz* L = new Lorenz; // Создание класса аттрактора
 
-    S.n_cycle = 0;
-    S.u_cycle = 0;
-    S.l_cycle = new double [100000]; //TODO Оформить динмаичесские массивы
-    S.s_cycle = new int [100000];
-
-
-    Lorenz L;
-    L.SetParam(8. / 3., 10, 28); // b, sigma, r
-
-    double a = 0.065;
+    double a = 0.065; //Величина решетки
     double eps = 0.001;
+    double *x = new double[L->m_dim];
+
+
 
     for (int i = 0; i < 50; ++i) {
 
-        L.GetLine();
-        double *x = new double[L.m_dim];
-        memcpy(x, L.dot, L.m_dim * sizeof(double));
+        double t = 0.; // Время
 
+        L->GetLine(); // Получаем одну траекторию и создаем пряму, для находждения всех циклов
+        memcpy(x, L->dot, L->m_dim * sizeof(double));
 
-        double t = 0.;
+        for (int k = 0; k < 200; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
 
-        for (int k = 0; k < 200; ++k) {
+            L->GetTr(x, a, 10, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
 
-            L.GetTr(x, a, 10, &S, i); // шаг метода, величина решетки, шаг на решетке
-
-            for (int j = 0; j < L.m_dim; ++j) {
-                x[j] = L.dot[j] + L.vector[j] * t;
+            for (int j = 0; j < L->m_dim; ++j) { // Следующий шаг
+                x[j] = L->dot[j] + L->vector[j] * t;
             }
+
             t += 0.065;
         }
 
-        //L->Save(&S, i);
-        //std::cout << "\n";
+        L->Save(S, i);// Сохранение траектории и вывод результатов
+        std::cout << "\n";
 
-        L.Reset();
-        S.Reset();
+        L->Reset();// Обновление класса аттрактора
+        S->Reset();// Обновление класса статистики
         a-=0.001;
     }
 

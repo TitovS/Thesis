@@ -7,22 +7,16 @@
 #include "math.h"
 #include <fstream>
 
-void Stat::SInit() {
-
+Stat::Stat(void) {
     n_cycle = 0;
     u_cycle = 0;
     l_cycle = new double [100000]; //TODO Оформить динмаичесские массивы
     s_cycle = new int [100000];
-
 }
 
-
-
-
-void Stat::collect(double* _cp, int m_dim, int num_cycle, int a_index) {
+void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index) {
 
     double x = 0; // длинна между точками цикла
-
 
     //Создаем файл с номером цикла
     std::ofstream out;
@@ -35,8 +29,7 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, int a_index) {
     //Проходим по массиву траекторий
     for (int j = 0; j < num_cycle; ++j){
 
-
-        for (int i = 0; i < m_dim; ++i) {
+        for (int i = 0; i < m_dim; ++i){
 
             x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
             out << _cp[i] << " ";
@@ -58,9 +51,6 @@ void Stat::Reset() {
 
     u_cycle = 0;
     n_cycle = 0;
-
-    memset(l_cycle,0,100000* sizeof(double));
-    memset(s_cycle,0,100000* sizeof(double));
 
 
 }

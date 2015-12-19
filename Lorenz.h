@@ -17,21 +17,12 @@ public:
     // конструктор
     Lorenz (void);
 
-    // Задание параметров системы
-        // Параметры:
-        // double - b
-        // double - sigma
-        // double - r
-        void SetParam (double, double, double);
-
     // Вычисление n точек фазовой траектории
         // Параметры:
         // double* - массив начальных условий
-        // double - шаг вычисления
         // double - шаг решетки
         // int - шаг на решетке
-        // int - номер шага а
-        void GetTr (double*, double, int, Stat*, int );
+        void GetTr (double*, double, int, Stat*);
 
 
     // Сохранение траектории в файл
@@ -48,7 +39,6 @@ public:
         void DynamicMemory(int, int&, double*&, double*&);
 
     // Обнуление перменных
-
         void Reset();
 
     // Деконструктор
@@ -59,7 +49,7 @@ public:
         double* dot; //точка на прямой
 
     // Размерность системы
-        int m_dim;
+        int const m_dim;
     // Нумерация
         int num_main; //сквозная нумерация
         int num_first; //номер начальной точки вычисления
@@ -70,12 +60,21 @@ private:
     //Система Лоренца
 
         //параметры
-        double m_b;
-        double m_sigma;
-        double m_r;
+        double const m_b;
+        double const m_sigma;
+        double const m_r;
 
         //показатели перехода по циклам
         int Cycles_done; //переходов совершено
+
+        // массив точек фазовой траектории
+        double* m_tr;
+        double* m_tr1;
+        double* m_tr2;
+        int k;
+
+        // количество точек в траектории
+        int m_n;
 
 //____________________________________
 
@@ -85,14 +84,6 @@ private:
         // double*& - текущая точка
         // double*& - следующая точка
         void Runge_Cutta (double*& , double*&);
-
-        // массив точек фазовой траектории
-        double* m_tr;
-        double* m_tr1;
-        double* m_tr2;
-        int k;
-        // количество точек в траектории
-        int m_n;
 
         // шаг алгоритма
         double m_dt;
@@ -123,8 +114,6 @@ private:
         // Размер решетки
         double a;
 
-        // Шаг на решетке
-
 //____________________________________
 
     // Хэш-функция циклов
@@ -136,7 +125,7 @@ private:
         // Параметры
         // double* - полученная точка
         // int - счетчик свдига по а
-        void CycleCheck(double *, Stat*, int i);
+        void CycleCheck(double *, Stat*);
 
         // хэш-массив
         std::list<int>* m_hash;
@@ -145,14 +134,11 @@ private:
         int h_n;
 
         // Хэш значения
-        int p1;
-        int p2;
-        int p3;
+        int const p1;
+        int const p2;
+        int const p3;
 
 //____________________________________
-
-
-
 };
 
 

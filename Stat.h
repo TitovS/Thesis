@@ -26,10 +26,10 @@ public:
 
 //Функции
 
-    void SInit();
+    Stat(void);
 
     //Сбор статистики о цикле
-    void collect(double*, int, int, int);
+    void collect(double*, int, int, double);
 
     void Reset();
 
