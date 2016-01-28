@@ -3,12 +3,13 @@
 #include <fstream>
 #include <math.h>
 #include <random>
+#include <curses.h>
 
 
 // конструктор
 Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
-                        m_r(10),        //Ро
-                        m_sigma(28),    //Сигма
+                        m_r(28),        //Ро
+                        m_sigma(10),    //Сигма
                         m_dim(3),       //Размерность системы
                         p1(73856093),   //Хэш значения
                         p2(19349663),   //---
@@ -19,17 +20,20 @@ Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
     m_n = 8000*m_dim; //TODO Объяснить почему 8000
 
     // Размер хэш таблицы
-    h_n=100000;  //TODO динмаический хэш.
+    h_n = 100000;  //TODO динмаический хэш.
     m_hash = new std::list<int> [h_n];
 
     //количество вычисленных точек
     num_main = 0;
+    num_first = 0;
+    //для точного количества надо делить на два - в массиве храняться пары.
+    a_breakpoints = new (std::nothrow) double[100000]; //TODO может имеет смысл сделать вектором для динмаичегого размера
 
     //Создание динмаического массива траекторий см. DynamicMemory
     m_tr1 = new (std::nothrow) double [m_n];
     m_tr2 = 0;
     k = 0;
-    m_tr=m_tr1;
+    m_tr = m_tr1;
 
     //Прямая для вычисления всех значений
     vector =  new double [3];
@@ -226,13 +230,13 @@ void Lorenz::CycleCheck(double *_np, Stat* S){
             if (m_tr[*it*m_dim] == *_np) {
                 //std::cout << m_tr[*it*m_dim] << ' ' << *_np <<' ' << '1' <<"\n";
                 if (m_tr[*it*m_dim + 1] == *(_np + 1)) {
-                    //std::cout << m_tr[*it*m_dim+1] << ' ' << *(_np+1)<<' ' << '2' << "\n";
+                  //  std::cout << m_tr[*it*m_dim+1] << ' ' << *(_np+1)<<' ' << '2' << "\n";
                     if (m_tr[*it*m_dim + 2] == *(_np + 2)) {
-                        //std::cout << m_tr[*it*m_dim+2] << ' ' << *(_np+2) <<' ' << '3'<< "\n";
+                    //    std::cout << m_tr[*it*m_dim+2] << ' ' << *(_np+2) <<' ' << '3'<< "\n";
                         S -> n_cycle += 1; // Цикл обнуаржуен
 
                         if (*it > num_first) { // Проверка на новизну цикла
-                            S -> collect(&m_tr[*it], m_dim, num_main - *it, a); // Ссылка на начальную точку цикла, размерность, размер цикла, размер решетки
+                            S -> collect(&m_tr[(*it)*m_dim], m_dim, num_main + 1 - *it, a, BreakpointSerachMode); // Ссылка на начальную точку цикла, размерность, размер цикла, размер решетки
                         }
                     }
                 }
@@ -311,8 +315,64 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
     }
 }
 
+// Вычисление всех циклов при заданной дискретизации
+void Lorenz::GetCycles(Stat *S, double a) {
 
-//Обнуление параметров
+    double t = 0.;
+    double *x = new double[m_dim];
+
+    GetLine(); // Получаем одну траекторию и создаем пряму, для находждения всех циклов
+    memcpy(x, dot, m_dim * sizeof(double));
+
+    for (int k = 0; k < 200; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
+
+        GetTr(x, a, 10, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
+
+        for (int j = 0; j < m_dim; ++j) { // Следующий шаг
+            x[j] = dot[j] + vector[j] * t;
+        }
+
+    t+=0.065;
+    }
+
+    if (BreakpointSerachMode == FALSE) {Save(S);
+    std::cout << "\n";}
+    Reset();
+};
+
+// Поиск разрыва
+void Lorenz::GetBreak(Stat *S, double aleft, double aright,  double eps, int num_breakpoints) {
+
+    BreakpointSerachMode = TRUE;
+
+    double amid = (aright-aleft)/2;
+    double num_cycles_right;
+    double num_cycles_left;
+
+    while (amid > eps){
+
+        GetCycles(S,aright);
+        num_cycles_right = S->u_cycle;
+        S->Reset();
+
+        GetCycles(S,(aleft + amid));
+        num_cycles_left = S->u_cycle;
+        S->Reset();
+
+        if (num_cycles_right == num_cycles_left) aright -= amid;
+        else aleft += amid;
+
+        amid = (aright-aleft)/2;
+    }
+
+    a_breakpoints[num_breakpoints]= aleft;
+    a_breakpoints[num_breakpoints+1]= aright;
+
+    BreakpointSerachMode = FALSE;
+
+}
+
+// Обнуление параметров
 void Lorenz::Reset(){
 
     // Размер хэш таблицы

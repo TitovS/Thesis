@@ -8,6 +8,7 @@
 
 #include "Lorenz.h"
 #include "iostream"
+#include "Stat.h"
 
 
 int main (void) {
@@ -15,37 +16,46 @@ int main (void) {
     Stat* S = new Stat; // Создание класса статистики
     Lorenz* L = new Lorenz; // Создание класса аттрактора
 
-    double a = 0.065; //Величина решетки
-    //double eps = 0.001;
-    double *x = new double[L->m_dim];
+    double a_right = 0.065; //Величина решетки
+    double a_left=0;
+    double eps = 0.000000001;
+
+    int n_last_cycles = 0;
+    int num_breakpoits = 0; //для точного количества надо делить на два - в массиве храняться пары.
 
 
+    L->GetCycles(S,a_right);
+    n_last_cycles = S->u_cycle;
+    S->Reset();// Обновление класса статистики
 
-    for (int i = 0; i < 50; ++i) {
+    a_left = a_right;
+    a_right -= 0.00001;
 
-        double t = 0.; // Время
+    num_breakpoits += 2;
 
-        L->GetLine(); // Получаем одну траекторию и создаем пряму, для находждения всех циклов
-        memcpy(x, L->dot, L->m_dim * sizeof(double));
 
-        for (int k = 0; k < 200; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
+    for (int i = 1; i < 10; ++i) {
 
-            L->GetTr(x, a, 10, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
+        L->GetCycles(S,a_right);
 
-            for (int j = 0; j < L->m_dim; ++j) { // Следующий шаг
-                x[j] = L->dot[j] + L->vector[j] * t;
-            }
 
-            t += 0.065;
-        }
+        if (n_last_cycles != S->u_cycle) L->GetBreak(S, a_right, a_left, eps, num_breakpoits);
 
-        L->Save(S);// Сохранение траектории и вывод результатов
-        std::cout << "\n";
-
-        L->Reset();// Обновление класса аттрактора
+        n_last_cycles = S->u_cycle;
         S->Reset();// Обновление класса статистики
-        a-=0.001;
+
+        a_left = a_right;
+        a_right -= 0.00001;
+
+        num_breakpoits += 2;
     }
+
+    for (int j = 0; j < 20; ++j) {
+        std::cout << L->a_breakpoints[j] << ' ' << L->a_breakpoints[j+1] <<"\n";
+        j+=1;
+
+    }
+
 
     return (0);
 }

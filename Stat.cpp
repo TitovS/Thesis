@@ -6,6 +6,7 @@
 #include "iostream"
 #include "math.h"
 #include <fstream>
+#include <curses.h>
 
 Stat::Stat(void) {
     n_cycle = 0;
@@ -14,37 +15,40 @@ Stat::Stat(void) {
     s_cycle = new int [100000];
 }
 
-void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index) {
+void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool mode) {
 
-    double x = 0; // длинна между точками цикла
+    if (mode == FALSE) {
+        double x = 0; // длинна между точками цикла
+        //Создаем файл с номером цикла
+        std::ofstream out;
+        std::string a = std::to_string(a_index);
+        std::string s = std::to_string(u_cycle);
+        s = a + "_" + s + ".txt";
+        char const *pchar = s.c_str();
+        out.open(pchar, std::ofstream::out | std::ofstream::trunc);
 
-    //Создаем файл с номером цикла
-    std::ofstream out;
-    std::string a = std::to_string(a_index);
-    std::string s = std::to_string(u_cycle);
-    s = a + "_" + s + ".txt";
-    char const *pchar = s.c_str();
-    out.open(pchar, std::ofstream::out | std::ofstream::trunc);
+        //Проходим по массиву траекторий
+        for (int j = 0; j < num_cycle + 1; ++j) {
 
-    //Проходим по массиву траекторий
-    for (int j = 0; j < num_cycle; ++j){
+            for (int i = 0; i < m_dim; ++i) {
 
-        for (int i = 0; i < m_dim; ++i){
+                x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
+                out << _cp[i] << " "; //записываем в файл
 
-            x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
-            out << _cp[i] << " "; //записываем в файл
+            }
+            out << "\n";
 
+            l_cycle[u_cycle] += sqrt(x); //длина
+            s_cycle[u_cycle] += 1; //кол-во точек в цикле
+            x = 0;
+
+            _cp += m_dim; // переход к следующей точке
         }
         out << "\n";
-
-        l_cycle[u_cycle] += sqrt(x); //длина
-        s_cycle[u_cycle] += 1; //кол-во точек в цикле
-        x = 0;
-
-        _cp += m_dim; // переход к следующей точке
     }
+
     u_cycle += 1; // счетчик кол - ва циклов
-    out << "\n";
+
 
 }
 

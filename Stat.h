@@ -29,7 +29,7 @@ public:
     Stat(void);
 
     //Сбор статистики о цикле
-    void collect(double*, int, int, double);
+    void collect(double*, int, int, double, bool);
 
     void Reset();
 

@@ -24,12 +24,24 @@ public:
         // int - шаг на решетке
         void GetTr (double*, double, int, Stat*);
 
+    // Вычисление всех циклов
+        // Stat* - статискика
+        // double - шаг решетки
+        void GetCycles (Stat*,double);
 
+    // Поикс точки разрыва
+        // Параметры
+        // Stat* - класс статистики
+        // double - левая точка
+        // double - правая точка точка
+        // double - допустимая погрешность
+        void GetBreak (Stat*, double, double, double, int);
+        bool BreakpointSerachMode;
+        double* a_breakpoints;
     // Сохранение траектории в файл
         // Параметры:
-        // int - начальная точка
-        // int - интервал пропуска точек
-        // int - конечная точка
+        // Stat* - класс статистики
+        //
         void Save (Stat*);
 
     // Функция составления уравнения прямой для свдига
