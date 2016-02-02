@@ -35,9 +35,11 @@ public:
         // double - левая точка
         // double - правая точка точка
         // double - допустимая погрешность
-        void GetBreak (Stat*, double, double, double, int);
-        bool BreakpointSerachMode;
+        void GetBreak (Stat*, double, double, double);
+        int num_breakpoints;
+        bool BreakpointSearchMode;
         double* a_breakpoints;
+        bool Complete;
     // Сохранение траектории в файл
         // Параметры:
         // Stat* - класс статистики
@@ -51,7 +53,7 @@ public:
         void DynamicMemory(int, int&, double*&, double*&);
 
     // Обнуление перменных
-        void Reset();
+        void Reset(bool);
 
     // Деконструктор
         ~Lorenz ();

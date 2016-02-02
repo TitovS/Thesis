@@ -27,8 +27,8 @@ Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
     num_main = 0;
     num_first = 0;
     //для точного количества надо делить на два - в массиве храняться пары.
-    a_breakpoints = new (std::nothrow) double[100000]; //TODO может имеет смысл сделать вектором для динмаичегого размера
-
+    a_breakpoints = new (std::nothrow) double[10000000]; //TODO может имеет смысл сделать вектором для динмаичегого размера
+    num_breakpoints = 0;
     //Создание динмаического массива траекторий см. DynamicMemory
     m_tr1 = new (std::nothrow) double [m_n];
     m_tr2 = 0;
@@ -38,6 +38,10 @@ Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
     //Прямая для вычисления всех значений
     vector =  new double [3];
     dot =  new double [3];
+
+    //Моды
+    BreakpointSearchMode = FALSE;
+    Complete = FALSE;
 }
 
 // вычисление фазовой траектории
@@ -236,7 +240,7 @@ void Lorenz::CycleCheck(double *_np, Stat* S){
                         S -> n_cycle += 1; // Цикл обнуаржуен
 
                         if (*it > num_first) { // Проверка на новизну цикла
-                            S -> collect(&m_tr[(*it)*m_dim], m_dim, num_main + 1 - *it, a, BreakpointSerachMode); // Ссылка на начальную точку цикла, размерность, размер цикла, размер решетки
+                            S -> collect(&m_tr[(*it)*m_dim], m_dim, num_main + 1 - *it, a, BreakpointSearchMode); // Ссылка на начальную точку цикла, размерность, размер цикла, размер решетки
                         }
                     }
                 }
@@ -335,15 +339,21 @@ void Lorenz::GetCycles(Stat *S, double a) {
     t+=0.065;
     }
 
-    if (BreakpointSerachMode == FALSE) {Save(S);
-    std::cout << "\n";}
-    Reset();
+    if (BreakpointSearchMode == FALSE) {
+        Save(S);
+        std::cout << "\n";}
+
+
+    //std::cout << "\n";
+    Reset(Complete);
+
+    delete[] x;
 };
 
 // Поиск разрыва
-void Lorenz::GetBreak(Stat *S, double aleft, double aright,  double eps, int num_breakpoints) {
-
-    BreakpointSerachMode = TRUE;
+void Lorenz::GetBreak(Stat *S, double aleft, double aright,  double eps) {
+    //TODO сделать проверку на новые циклы при поиске разрыва
+    BreakpointSearchMode = TRUE;
 
     double amid = (aright-aleft)/2;
     double num_cycles_right;
@@ -365,15 +375,19 @@ void Lorenz::GetBreak(Stat *S, double aleft, double aright,  double eps, int num
         amid = (aright-aleft)/2;
     }
 
-    a_breakpoints[num_breakpoints]= aleft;
-    a_breakpoints[num_breakpoints+1]= aright;
+    a_breakpoints[num_breakpoints] = aleft;
+    a_breakpoints[num_breakpoints+1] = num_cycles_left;
+    a_breakpoints[num_breakpoints+2] = aright;
+    a_breakpoints[num_breakpoints+3] = num_cycles_left;
 
-    BreakpointSerachMode = FALSE;
+
+
+    BreakpointSearchMode = FALSE;
 
 }
 
 // Обнуление параметров
-void Lorenz::Reset(){
+void Lorenz::Reset(bool mode){
 
     // Размер хэш таблицы
     h_n=100000;  //TODO динмаический хэш.
@@ -402,6 +416,12 @@ void Lorenz::Reset(){
 
     memset(vector,0,3* sizeof(double));
     memset(dot,0,3* sizeof(double));
+
+    if (Complete == TRUE) {
+
+        delete[] a_breakpoints;
+        Complete = FALSE;
+    }
 }
 
 // деструктор
