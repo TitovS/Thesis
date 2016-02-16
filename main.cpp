@@ -7,69 +7,45 @@
 //
 
 #include "Lorenz.h"
-#include "iostream"
-#include "fstream"
-#include "Stat.h"
+//#include "iostream"
+//#include "fstream"
+//#include "Stat.h"
+//#include "Grid.h"
 
 
 int main (void) {
 
     Stat* S = new Stat; // Создание класса статистики
     Lorenz* L = new Lorenz; // Создание класса аттрактора
+    Grid* A= new Grid; // Создание класса решетки
 
-    double a_right = 0.065; //Величина решетки
-    double a_left=0;
-    double eps = 0.000000001;
-
-    int n_last_cycles = 0;
+    int n_last_cycles = 0; // Количество циклов в прошлой итерации
 
 
+    L->GetCycles(S, A->a_left); // Количество циклов при нынешней
+    n_last_cycles = S->u_cycle; // Запись
+    A->Save(n_last_cycles);// Сохранение результатов
 
-    L->GetCycles(S,a_right);
-    n_last_cycles = S->u_cycle;
-    S->Reset();// Обновление класса статистики
-
-    a_left = a_right;
-    a_right -= 0.00001;
-
-    //L->num_breakpoints += 4;
-
+    S->Reset(); // Обнуление класса статистики
+    A->Grid_make_step(); // Переход на следующую решетку
 
     for (int i = 1; i < 10; ++i) {
 
-        L->GetCycles(S,a_right);
+        L->GetCycles(S,A->a_left); // Поиск всех циклов
+        A->Save(S->u_cycle); // Запись реузльтатов
+        if (n_last_cycles != S->u_cycle) L->GetBreak(S,A); // Если количество циклов не совпадает, то ищем точку разрыва
 
+        n_last_cycles = S->u_cycle; // Возвращаемся на движение по прямой
 
-        if (n_last_cycles != S->u_cycle) {
-
-            L->GetBreak(S, a_right, a_left, eps);
-            L->num_breakpoints += 4;
-        }
-
-
-        n_last_cycles = S->u_cycle;
-
-
-        a_left = a_right;
-        a_right -= 0.00001;
-
-        L -> a_breakpoints[L->num_breakpoints] = a_right;
-        L -> a_breakpoints[L->num_breakpoints] = n_last_cycles;
-        L->  num_breakpoints +=2;
-        S->Reset();// Обновление класса статистики
+        A->Grid_make_step(); // Переход на следующую решеткуПереход на следующую решетку
+        S->Reset();// Обнуление класса статистики
     }
 
-    std::ofstream out;
-    char const *pchar = "MainTable";
-    out.open(pchar, std::ofstream::out | std::ofstream::app);
+    A->Save_in_file();
 
+    delete A;
+    delete L;
+    delete S;
 
-
-    for (int j = 0; j < L-> num_breakpoints/2; ++j) {
-        std::cout << L->a_breakpoints[j] << ' ' << L->a_breakpoints[j+1] <<"\n";
-        out << L->a_breakpoints[j]<< ' ' << L->a_breakpoints[j+1] <<"\n";
-    }
-
-    out.close();
     return (0);
 }

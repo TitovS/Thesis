@@ -3,7 +3,7 @@
 #include <fstream>
 #include <math.h>
 #include <random>
-#include <curses.h>
+
 
 
 // конструктор
@@ -26,9 +26,7 @@ Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
     //количество вычисленных точек
     num_main = 0;
     num_first = 0;
-    //для точного количества надо делить на два - в массиве храняться пары.
-    a_breakpoints = new (std::nothrow) double[10000000]; //TODO может имеет смысл сделать вектором для динмаичегого размера
-    num_breakpoints = 0;
+
     //Создание динмаического массива траекторий см. DynamicMemory
     m_tr1 = new (std::nothrow) double [m_n];
     m_tr2 = 0;
@@ -40,8 +38,8 @@ Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
     dot =  new double [3];
 
     //Моды
-    BreakpointSearchMode = FALSE;
-    Complete = FALSE;
+    BreakpointSearchMode = false;
+    Complete = false;
 }
 
 // вычисление фазовой траектории
@@ -66,10 +64,12 @@ void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S)
 
     bool cycle = false; // Инвариант цикла - вычисление до нахождения цикла
 
+
     while (!cycle)
 
     {
-        DynamicMemory(num_main, k, m_tr1, m_tr2); // Проверка и увеличение массива в случае необходимости
+        // Проверка массива
+        DynamicMemory(num_main, k, m_tr1, m_tr2);
 
         // Указатель на текущую точку
         double* cp = m_tr + num_main * m_dim;
@@ -89,8 +89,8 @@ void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S)
             Cycles_done = S -> n_cycle;
             cycle = true;
         }
-
-        num_main+=1; // сквозная нумерация точки
+        // сквозная нумерация точки
+        num_main+=1;
     }
 
     delete[] m_v;
@@ -271,11 +271,11 @@ void Lorenz::Save(Stat* S) {
 // закрытие файла
     out.close();
 
-    for (int j = 0; j < S -> u_cycle; ++j) { //TODO разбораться с тем как закрывать
+    /*for (int j = 0; j < S -> u_cycle; ++j) { //TODO разбораться с тем как закрывать
         if (S->s_cycle[j] > 20) {
             std::cout << S->s_cycle[j] << " " << S->l_cycle[j] << "\n";
         }
-    }
+    }*/
 }
 
 // Получение координат для построения прямой
@@ -322,10 +322,12 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
 // Вычисление всех циклов при заданной дискретизации
 void Lorenz::GetCycles(Stat *S, double a) {
 
+    //Переменные времени и начальной точки
     double t = 0.;
     double *x = new double[m_dim];
 
-    GetLine(); // Получаем одну траекторию и создаем пряму, для находждения всех циклов
+    // Получаем одну траекторию и создаем прямую, для находждения всех циклов
+    GetLine();
     memcpy(x, dot, m_dim * sizeof(double));
 
     for (int k = 0; k < 200; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
@@ -339,50 +341,66 @@ void Lorenz::GetCycles(Stat *S, double a) {
     t+=0.065;
     }
 
-    if (BreakpointSearchMode == FALSE) {
+    //Запись идет только в том случае, если не поиск разрыва
+    if (!BreakpointSearchMode) {
         Save(S);
         std::cout << "\n";}
 
-
-    //std::cout << "\n";
     Reset(Complete);
 
     delete[] x;
 };
 
 // Поиск разрыва
-void Lorenz::GetBreak(Stat *S, double aleft, double aright,  double eps) {
+void Lorenz::GetBreak(Stat *S, Grid *A) {
     //TODO сделать проверку на новые циклы при поиске разрыва
-    BreakpointSearchMode = TRUE;
+    // Маркер поиска разрыва
+    BreakpointSearchMode = true;
+    // Отчистка старой статистики
+    S->Reset();
 
-    double amid = (aright-aleft)/2;
-    double num_cycles_right;
-    double num_cycles_left;
+    // Создание локальных перменных - кол-во циклов для середин и крайней точки
+    double amid = (A->a_right-A->a_left)/2;
+    int num_cycles_right=0;
+    int num_cycles_middle=0;
 
-    while (amid > eps){
+    // Сохранение старого шага
+    double oldgrid = A->a_left;
 
-        GetCycles(S,aright);
+
+    // Цикл поиска точки разрыва с точностью eps
+    while (amid > A->eps){
+
+        //Поиск правой части
+        GetCycles(S,A->a_right);
         num_cycles_right = S->u_cycle;
         S->Reset();
 
-        GetCycles(S,(aleft + amid));
-        num_cycles_left = S->u_cycle;
+        //Поиск центральной части
+        GetCycles(S,(A->a_left + amid));
+        num_cycles_middle = S->u_cycle;
         S->Reset();
 
-        if (num_cycles_right == num_cycles_left) aright -= amid;
-        else aleft += amid;
+        //Сравнение
+        if (num_cycles_right == num_cycles_middle) A->a_right -= amid;
 
-        amid = (aright-aleft)/2;
+        //Сдвиг левой части на центральную
+        else {
+            A->a_left += amid;
+            // Если центральная часть отличается от старых реультатов, то сохраняется
+            if (num_cycles_middle != A->grid_results[A->grid_num-1])
+            A->Save(num_cycles_middle); //TODO провеить, что этого достаточно
+
+
+        }
+
+        amid = (A->a_right-A->a_left)/2;
     }
 
-    a_breakpoints[num_breakpoints] = aleft;
-    a_breakpoints[num_breakpoints+1] = num_cycles_left;
-    a_breakpoints[num_breakpoints+2] = aright;
-    a_breakpoints[num_breakpoints+3] = num_cycles_left;
+    A->Save(num_cycles_middle);
+    BreakpointSearchMode = false;
 
-
-
-    BreakpointSearchMode = FALSE;
+    A->a_left = oldgrid;
 
 }
 
@@ -417,11 +435,6 @@ void Lorenz::Reset(bool mode){
     memset(vector,0,3* sizeof(double));
     memset(dot,0,3* sizeof(double));
 
-    if (Complete == TRUE) {
-
-        delete[] a_breakpoints;
-        Complete = FALSE;
-    }
 }
 
 // деструктор

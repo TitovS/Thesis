@@ -9,6 +9,7 @@
 #include "map"
 #include "list"
 #include "Stat.h"
+#include "Grid.h"
 
 class Lorenz
 {
@@ -35,10 +36,8 @@ public:
         // double - левая точка
         // double - правая точка точка
         // double - допустимая погрешность
-        void GetBreak (Stat*, double, double, double);
-        int num_breakpoints;
+        void GetBreak (Stat*, Grid*);
         bool BreakpointSearchMode;
-        double* a_breakpoints;
         bool Complete;
     // Сохранение траектории в файл
         // Параметры:
