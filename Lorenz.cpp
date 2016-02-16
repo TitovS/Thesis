@@ -39,7 +39,6 @@ Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
 
     //Моды
     BreakpointSearchMode = false;
-    Complete = false;
 }
 
 // вычисление фазовой траектории
@@ -73,6 +72,7 @@ void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S)
 
         // Указатель на текущую точку
         double* cp = m_tr + num_main * m_dim;
+
         // Указатель на следующую точку
         double* np = m_tr + (num_main + 1) * m_dim;
 
@@ -80,7 +80,7 @@ void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S)
         Runge_Cutta(np, cp);
 
         //дискретизация при шаге на решетке
-        if (num_main%1 == 0 ) {
+        if (num_main%1 == 0 ) { //TODO каждые сколько шагов проверять?
             GridTr(np);
             CycleCheck(np, S);}
 
@@ -253,7 +253,7 @@ void Lorenz::CycleCheck(double *_np, Stat* S){
 }
 
 // Сохранение траектории в файл
-void Lorenz::Save(Stat* S) {
+void Lorenz::Save() {
     //S.save;
     //создание файлового потока вывода
     std::ofstream out;
@@ -343,10 +343,8 @@ void Lorenz::GetCycles(Stat *S, double a) {
 
     //Запись идет только в том случае, если не поиск разрыва
     if (!BreakpointSearchMode) {
-        Save(S);
+        Save();
         std::cout << "\n";}
-
-    Reset(Complete);
 
     delete[] x;
 };
@@ -405,7 +403,7 @@ void Lorenz::GetBreak(Stat *S, Grid *A) {
 }
 
 // Обнуление параметров
-void Lorenz::Reset(bool mode){
+void Lorenz::Reset(){
 
     // Размер хэш таблицы
     h_n=100000;  //TODO динмаический хэш.

@@ -7,11 +7,6 @@
 //
 
 #include "Lorenz.h"
-//#include "iostream"
-//#include "fstream"
-//#include "Stat.h"
-//#include "Grid.h"
-
 
 int main (void) {
 
@@ -26,10 +21,11 @@ int main (void) {
     n_last_cycles = S->u_cycle; // Запись
     A->Save(n_last_cycles);// Сохранение результатов
 
-    S->Reset(); // Обнуление класса статистики
     A->Grid_make_step(); // Переход на следующую решетку
+    S->Reset(); // Обнуление класса статистики
+    L->Reset(); // Обнуление класса системы
 
-    for (int i = 1; i < 10; ++i) {
+    for (int i = 1; i < 20; ++i) {
 
         L->GetCycles(S,A->a_left); // Поиск всех циклов
         A->Save(S->u_cycle); // Запись реузльтатов
@@ -38,7 +34,8 @@ int main (void) {
         n_last_cycles = S->u_cycle; // Возвращаемся на движение по прямой
 
         A->Grid_make_step(); // Переход на следующую решеткуПереход на следующую решетку
-        S->Reset();// Обнуление класса статистики
+        S->Reset(); // Обнуление класса статистики
+        L->Reset(); // Обнуление класса системы
     }
 
     A->Save_in_file();
