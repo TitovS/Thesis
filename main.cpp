@@ -7,36 +7,42 @@
 //
 
 #include "Lorenz.h"
-#include "iostream"
-
 
 int main (void) {
-    Lorenz L;
 
-    L.SetParam(8. / 3., 10, 28); // b, sigma, r
-    L.GetLine();
+    Stat* S = new Stat; // Создание класса статистики
+    Lorenz* L = new Lorenz; // Создание класса аттрактора
+    Grid* A= new Grid; // Создание класса решетки
 
-    double* x = new double[L.m_dim];
+    int n_last_cycles = 0; // Количество циклов в прошлой итерации
 
-    memcpy (x, L.dot, L.m_dim * sizeof (double));
 
-    double t = 0.;
+    L->GetCycles(S, A->a_left); // Количество циклов при нынешней
+    n_last_cycles = S->u_cycle; // Запись
+    A->Save(n_last_cycles);// Сохранение результатов
 
-    for (int i = 0; i < 200; ++i) {
+    A->Grid_make_step(); // Переход на следующую решетку
+    S->Reset(); // Обнуление класса статистики
+    L->Reset(); // Обнуление класса системы
 
-        L.GetTr(x, 0.065 ,10); // шаг метода, величина решетки, шаг на решетке
+    for (int i = 1; i < 20; ++i) {
 
-        for (int j = 0; j < L.m_dim; ++j) {
-            x[j] = L.dot[j] + L.vector[j] * t;
+        L->GetCycles(S,A->a_left); // Поиск всех циклов
+        A->Save(S->u_cycle); // Запись реузльтатов
+        if (n_last_cycles != S->u_cycle) L->GetBreak(S,A); // Если количество циклов не совпадает, то ищем точку разрыва
 
-        }
+        n_last_cycles = S->u_cycle; // Возвращаемся на движение по прямой
 
-        //std::cout << x[0] << " "<< std::endl;
-        t+=0.065;
-
+        A->Grid_make_step(); // Переход на следующую решеткуПереход на следующую решетку
+        S->Reset(); // Обнуление класса статистики
+        L->Reset(); // Обнуление класса системы
     }
 
-    L.Save();
+    A->Save_in_file();
+
+    delete A;
+    delete L;
+    delete S;
 
     return (0);
 }

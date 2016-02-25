@@ -26,10 +26,14 @@ public:
 
 //Функции
 
+    Stat(void);
+
     //Сбор статистики о цикле
-    void collect(double*, double*, int, int);
+    void collect(double*, int, int, double, bool);
 
+    void Reset();
 
+    ~Stat();
 };
 
 

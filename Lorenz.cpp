@@ -4,67 +4,55 @@
 #include <math.h>
 #include <random>
 
+
+
 // конструктор
-Lorenz::Lorenz (void)
+Lorenz::Lorenz (void) : m_b(8. / 3.),   //Бета
+                        m_r(28),        //Ро
+                        m_sigma(10),    //Сигма
+                        m_dim(3),       //Размерность системы
+                        p1(73856093),   //Хэш значения
+                        p2(19349663),   //---
+                        p3(83492791)    //---
 {
-    // размерность системы
-    m_dim = 3;
 
     // количество точек в траектории
-    m_n = 8000*m_dim;
-
-    // хэш-значения
-    p1=73856093;
-    p2=19349663;
-    p3=83492791;
+    m_n = 8000*m_dim; //TODO Объяснить почему 8000
 
     // Размер хэш таблицы
-    h_n=100000;
+    h_n = 100000;  //TODO динмаический хэш.
     m_hash = new std::list<int> [h_n];
-
-    // Инициализация класса статистики
-    S.n_cycle=0;
-    S.u_cycle=0;
-    S.l_cycle =  new double [100000];
-    S.s_cycle =  new int [100000];
-
-    //Показатель перехода на следуюшую тракторию
-    Cycles_done = 0;
 
     //количество вычисленных точек
     num_main = 0;
+    num_first = 0;
 
+    //Создание динмаического массива траекторий см. DynamicMemory
     m_tr1 = new (std::nothrow) double [m_n];
-    m_tr2 = 0;// = new (std::nothrow) double [m_n];
+    m_tr2 = 0;
     k = 0;
-    m_tr=m_tr1;
+    m_tr = m_tr1;
 
-
+    //Прямая для вычисления всех значений
     vector =  new double [3];
     dot =  new double [3];
+
+    //Моды
+    BreakpointSearchMode = false;
 }
-
-
-// задание параметров системы
-void Lorenz::SetParam (double _p1, double _p2, double _p3)
-{
-    m_b = _p1;
-    m_sigma = _p2;
-    m_r = _p3;
-}
-
 
 // вычисление фазовой траектории
-void Lorenz::GetTr (double* _init, double _a, int _b)
+void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S)
 {
     // Шаг вычислительного метода
     m_dt = _a*_b;
 
     // Параметры решетки
     a=_a;
-    b=_b;
+
 
     num_first = num_main; // присвоение начальной точки данной траектории
+    Cycles_done = S -> n_cycle; // запись количества выполенных циклов статистику
 
     // Массив для вчисления точек
     m_v = new double [m_dim];
@@ -75,13 +63,16 @@ void Lorenz::GetTr (double* _init, double _a, int _b)
 
     bool cycle = false; // Инвариант цикла - вычисление до нахождения цикла
 
+
     while (!cycle)
 
     {
-        DynamicMemory(num_main, k, m_tr1, m_tr2); // Проверка и увеличение массива в случае необходимости
+        // Проверка массива
+        DynamicMemory(num_main, k, m_tr1, m_tr2);
 
         // Указатель на текущую точку
         double* cp = m_tr + num_main * m_dim;
+
         // Указатель на следующую точку
         double* np = m_tr + (num_main + 1) * m_dim;
 
@@ -89,19 +80,20 @@ void Lorenz::GetTr (double* _init, double _a, int _b)
         Runge_Cutta(np, cp);
 
         //дискретизация при шаге на решетке
-        if (num_main%1 == 0 ) {
+        if (num_main%1 == 0 ) { //TODO каждые сколько шагов проверять?
             GridTr(np);
-            CycleCheck(np);}
+            CycleCheck(np, S);}
 
-        //Если обнаржуен цикл, то вычисление заканчиывается.
-        if (S.n_cycle > Cycles_done) {
-            Cycles_done = S.n_cycle;
+        //Если обнаржуен цикл, то вычисление заканчивается
+        if (S -> n_cycle > Cycles_done) {
+            Cycles_done = S -> n_cycle;
             cycle = true;
         }
-
-        num_main+=1; // сквозная нумерация точки
+        // сквозная нумерация точки
+        num_main+=1;
     }
 
+    delete[] m_v;
 }
 
 // вычисление следующей точки фазовой траектории по текущей - Рунге-Кутта
@@ -153,7 +145,6 @@ void Lorenz::Runge_Cutta (double*& _np, double*& _cp )
 
 // вычисление фазовой скорости в заданной точке
 void Lorenz::PhVelocity (double*& _cp)
-
 {
 
 
@@ -168,7 +159,7 @@ void Lorenz::PhVelocity (double*& _cp)
     m_v [2] = m_v[2]/X;
 }
 
-
+// дискретизация простым методом
 void Lorenz::GridTr (double*& _np)
 {
     for (int i = 0; i< m_dim; i++) {
@@ -177,7 +168,7 @@ void Lorenz::GridTr (double*& _np)
 }
 
 // дикретизация полученной траектории методом Цпвд
-void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
+/*void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
 {
 
     double* x = new double [m_dim]; //Доп. переменная для создания точек
@@ -210,7 +201,7 @@ void Lorenz::GridTrCPVD (double*& _np,double*& _cp)
     }
 
 
-}
+}*/
 
 // Хэш функция
 int Lorenz::HashFun(double *_np) {
@@ -226,51 +217,43 @@ int Lorenz::HashFun(double *_np) {
     
 }
 
-
-
-
-
-void Lorenz::CycleCheck(double *_np){
+// Проверка на обнаружение цикла
+void Lorenz::CycleCheck(double *_np, Stat* S){
 
     int hp = HashFun(_np); // Присвоение
 
-    std::list<int>::iterator it;  //Созадние итератора
+    std::list<int>::iterator it;  // Созадние итератора
 
+    // Проверка коодинат
 
-    //if (*_np != m_tr[(num_main+1)*m_dim]) { std::cout << "error"; }
-    //Проверка коодинат
-
-    if (m_hash[hp].size() != 0 ) {   //если в листе есть что-то то мы проверям совпадения
-        //идем по списку которые назодятся по ключу
+    if (m_hash[hp].size() != 0 ) {   // Если в листе есть что-то, то мы проверям совпадения
+        // Идем по листу, который назодятся по ключу
         for (it = m_hash[hp].begin(); it != m_hash[hp].end(); it++) {
-
-            if ((m_tr[*it*m_dim] == *_np)) {
-
+            //double s = m_hash[hp].size();
+            //std::cout << s;
+            if (m_tr[*it*m_dim] == *_np) {
+                //std::cout << m_tr[*it*m_dim] << ' ' << *_np <<' ' << '1' <<"\n";
                 if (m_tr[*it*m_dim + 1] == *(_np + 1)) {
+                  //  std::cout << m_tr[*it*m_dim+1] << ' ' << *(_np+1)<<' ' << '2' << "\n";
+                    if (m_tr[*it*m_dim + 2] == *(_np + 2)) {
+                    //    std::cout << m_tr[*it*m_dim+2] << ' ' << *(_np+2) <<' ' << '3'<< "\n";
+                        S -> n_cycle += 1; // Цикл обнуаржуен
 
-                    if (m_tr[*it*m_dim + 2] == *(_np + 2)) { //TODO подумать над другим методом сравнения
-
-                        S.n_cycle += 1;
-                        if (*it > num_first) {
-
-                            S.collect(_np, &m_tr[*it], m_dim, num_main - *it);
+                        if (*it > num_first) { // Проверка на новизну цикла
+                            S -> collect(&m_tr[(*it)*m_dim], m_dim, num_main + 1 - *it, a, BreakpointSearchMode); // Ссылка на начальную точку цикла, размерность, размер цикла, размер решетки
                         }
-
-
                     }
                 }
             }
         }
     }
-    //Запись координаты
+
+    //Запись начальной координаты цикла в лист (нумерация акутальной точки выставляется в конце gettr)
     m_hash[hp].push_back(num_main+1);
 }
 
-
-
-
-// сохранение траектории в файл
-void Lorenz::Save () {
+// Сохранение траектории в файл
+void Lorenz::Save() {
     //S.save;
     //создание файлового потока вывода
     std::ofstream out;
@@ -288,15 +271,14 @@ void Lorenz::Save () {
 // закрытие файла
     out.close();
 
-    for (int j = 0; j <S.u_cycle; ++j) {
-        if (S.s_cycle[j] > 40) {
-            std::cout << S.s_cycle[j] << " " << S.l_cycle[j] << "\n";
+    /*for (int j = 0; j < S -> u_cycle; ++j) { //TODO разбораться с тем как закрывать
+        if (S->s_cycle[j] > 20) {
+            std::cout << S->s_cycle[j] << " " << S->l_cycle[j] << "\n";
         }
-    }
+    }*/
 }
 
-
-
+// Получение координат для построения прямой
 void Lorenz::GetLine() {
 
     dot[0] = sqrt((m_r-1)*m_b) ;
@@ -308,7 +290,7 @@ void Lorenz::GetLine() {
     vector[2] = 0;
 }
 
-
+// Реалзация динамического массива для траектории
 void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
 
     if (i * m_dim >= m_n - m_dim) { //
@@ -321,10 +303,10 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
             m_tr = m_tr2;
             delete[] m_tr1;
             m_tr1 = NULL;
-            k=1;
+            k = 1;
         }
 
-        else{
+        else {
             //delete[] m_tr1;
             m_n = m_n * 2; //увеличение размера массива в двое
             m_tr1 = new(std::nothrow) double[m_n];
@@ -332,26 +314,140 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
             m_tr = m_tr1;
             delete[] m_tr2;
             m_tr2 = NULL;
-            k=0;
+            k = 0;
         }
+    }
+}
+
+// Вычисление всех циклов при заданной дискретизации
+void Lorenz::GetCycles(Stat *S, double a) {
+
+    //Переменные времени и начальной точки
+    double t = 0.;
+    double *x = new double[m_dim];
+
+    // Получаем одну траекторию и создаем прямую, для находждения всех циклов
+    GetLine();
+    memcpy(x, dot, m_dim * sizeof(double));
+
+    for (int k = 0; k < 200; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
+
+        GetTr(x, a, 10, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
+
+        for (int j = 0; j < m_dim; ++j) { // Следующий шаг
+            x[j] = dot[j] + vector[j] * t;
+        }
+
+    t+=0.065;
+    }
+
+    //Запись идет только в том случае, если не поиск разрыва
+    if (!BreakpointSearchMode) {
+        Save();
+        std::cout << "\n";}
+
+    delete[] x;
+};
+
+// Поиск разрыва
+void Lorenz::GetBreak(Stat *S, Grid *A) {
+    //TODO сделать проверку на новые циклы при поиске разрыва
+    // Маркер поиска разрыва
+    BreakpointSearchMode = true;
+    // Отчистка старой статистики
+    S->Reset();
+
+    // Создание локальных перменных - кол-во циклов для середин и крайней точки
+    double amid = (A->a_right-A->a_left)/2;
+    int num_cycles_right=0;
+    int num_cycles_middle=0;
+
+    // Сохранение старого шага
+    double oldgrid = A->a_left;
+
+
+    // Цикл поиска точки разрыва с точностью eps
+    while (amid > A->eps){
+
+        //Поиск правой части
+        GetCycles(S,A->a_right);
+        num_cycles_right = S->u_cycle;
+        S->Reset();
+
+        //Поиск центральной части
+        GetCycles(S,(A->a_left + amid));
+        num_cycles_middle = S->u_cycle;
+        S->Reset();
+
+        //Сравнение
+        if (num_cycles_right == num_cycles_middle) A->a_right -= amid;
+
+        //Сдвиг левой части на центральную
+        else {
+            A->a_left += amid;
+            // Если центральная часть отличается от старых реультатов, то сохраняется
+            if (num_cycles_middle != A->grid_results[A->grid_num-1])
+            A->Save(num_cycles_middle); //TODO провеить, что этого достаточно
+
+
+        }
+
+        amid = (A->a_right-A->a_left)/2;
+    }
+
+    A->Save(num_cycles_middle);
+    BreakpointSearchMode = false;
+
+    A->a_left = oldgrid;
+
+}
+
+// Обнуление параметров
+void Lorenz::Reset(){
+
+    // Размер хэш таблицы
+    h_n=100000;  //TODO динмаический хэш.
+    m_hash = new std::list<int> [h_n];
+
+    num_main = 0;
+
+    if (k == 0 ){
+
+        memset(m_tr1 ,0, m_n* sizeof(double));
+        m_tr = m_tr1;
+        delete[] m_tr2;
+        m_tr2 = NULL;
+    }
+
+    else {
+
+        m_tr1 = new(std::nothrow) double[m_n];
+        memset(m_tr1 ,0, m_n* sizeof(double));
+        m_tr = m_tr1;
+        delete[] m_tr2;
+        m_tr2 = NULL;
+        k = 0;
 
     }
 
-
+    memset(vector,0,3* sizeof(double));
+    memset(dot,0,3* sizeof(double));
 
 }
-// деструктор
-Lorenz::~Lorenz ()
-{
-    if (m_tr != 0){
-        delete [] m_tr;}
 
-    delete [] m_v;
-    delete [] vector;
-    delete [] dot;
+// деструктор
+Lorenz::~Lorenz(){
+
+    if (m_tr1 != 0){
+        delete[] m_tr1;}
+
+    if (m_tr2 != 0){
+        delete[] m_tr2;}
+
+    delete[] vector;
+    delete[] dot;
     delete [] m_hash;
 
-    m_tr = 0;
-    m_v = 0;
-    m_n = 8000*m_dim;
 }
+
+
