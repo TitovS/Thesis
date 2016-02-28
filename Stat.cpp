@@ -6,7 +6,7 @@
 #include "iostream"
 #include "math.h"
 #include <fstream>
-#include <curses.h>
+
 
 Stat::Stat(void) {
     n_cycle = 0;
