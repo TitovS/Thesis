@@ -3,7 +3,7 @@
 #include <fstream>
 #include <math.h>
 #include <random>
-
+#include <cstring>
 
 
 // конструктор
