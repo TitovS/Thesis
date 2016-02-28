@@ -59,7 +59,7 @@ void Lorenz::GetTr (double* _init, double _a, int _b, Stat* S)
 
     // Запись начальных условий
     GridTr(_init);
-    memcpy (&m_tr[num_first*m_dim], _init, m_dim * sizeof (double));
+    std::memcpy (&m_tr[num_first*m_dim], _init, m_dim * sizeof (double));
 
     bool cycle = false; // Инвариант цикла - вычисление до нахождения цикла
 
@@ -299,7 +299,7 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
             //delete[] m_tr2;
             m_n = m_n * 2; //увеличение размера массива в двое
             m_tr2 = new(std::nothrow) double[m_n];
-            memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
+            std::memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
             m_tr = m_tr2;
             delete[] m_tr1;
             m_tr1 = NULL;
@@ -310,7 +310,7 @@ void Lorenz::DynamicMemory(int i, int& k, double*& m_tr1, double*& m_tr2 ) {
             //delete[] m_tr1;
             m_n = m_n * 2; //увеличение размера массива в двое
             m_tr1 = new(std::nothrow) double[m_n];
-            memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
+            std::memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
             m_tr = m_tr1;
             delete[] m_tr2;
             m_tr2 = NULL;
@@ -328,7 +328,7 @@ void Lorenz::GetCycles(Stat *S, double a) {
 
     // Получаем одну траекторию и создаем прямую, для находждения всех циклов
     GetLine();
-    memcpy(x, dot, m_dim * sizeof(double));
+    std::memcpy(x, dot, m_dim * sizeof(double));
 
     for (int k = 0; k < 200; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
 
@@ -413,7 +413,7 @@ void Lorenz::Reset(){
 
     if (k == 0 ){
 
-        memset(m_tr1 ,0, m_n* sizeof(double));
+        std::memset(m_tr1 ,0, m_n* sizeof(double));
         m_tr = m_tr1;
         delete[] m_tr2;
         m_tr2 = NULL;
@@ -422,7 +422,7 @@ void Lorenz::Reset(){
     else {
 
         m_tr1 = new(std::nothrow) double[m_n];
-        memset(m_tr1 ,0, m_n* sizeof(double));
+        std::memset(m_tr1 ,0, m_n* sizeof(double));
         m_tr = m_tr1;
         delete[] m_tr2;
         m_tr2 = NULL;
@@ -430,8 +430,8 @@ void Lorenz::Reset(){
 
     }
 
-    memset(vector,0,3* sizeof(double));
-    memset(dot,0,3* sizeof(double));
+    std::memset(vector,0,3* sizeof(double));
+    std::memset(dot,0,3* sizeof(double));
 
 }
 
