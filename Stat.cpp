@@ -17,7 +17,7 @@ Stat::Stat(void) {
 
 void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool mode) {
 
-    if (mode == FALSE) {
+    if (mode == false) {
         double x = 0; // длинна между точками цикла
         //Создаем файл с номером цикла
         std::ofstream out;
