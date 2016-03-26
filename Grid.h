@@ -5,6 +5,7 @@
 #ifndef THESIS_GRID_H
 #define THESIS_GRID_H
 
+#include "Stat.h"
 
 class Grid {
 
@@ -21,6 +22,8 @@ public:
     double step; // Шаг изменения решетки
 
     double eps; // Предельная точность поиска разрыва
+
+
 
 //___________________________________
 

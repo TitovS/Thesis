@@ -17,11 +17,14 @@ Grid::Grid() {
 
     a_left=0.065;
 
-    eps = 0.000000001;
+    eps = 0.0000001;
 
     step = 0.00001;
 
-
+    char const *pchar = "MainTable";
+    std::ofstream out;
+    out.open(pchar, std::ofstream::out | std::ofstream::trunc);
+    out.close();
 }
 
 void Grid::Grid_make_step() {
@@ -58,7 +61,6 @@ void Grid::Save_in_file() {
 }
 
 void Grid::Grid_step_est() {
-
 
 
 }

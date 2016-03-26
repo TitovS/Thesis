@@ -11,12 +11,12 @@
 #include "Stat.h"
 #include "Grid.h"
 
-class Lorenz
+class System
 {
 public:
 
     // конструктор
-    Lorenz (void);
+    System(void);
 
     // Вычисление всех циклов
         // Stat* - класс статистики
@@ -36,18 +36,21 @@ public:
         void Reset();
 
     // Деконструктор
-        ~Lorenz ();
+        ~System();
 
 
 private:
 //_____________Система________________
 
-    //Система Лоренца
+    //Система
 
-        //параметры
+        //параметры Лоренца
         double const m_b;
         double const m_sigma;
         double const m_r;
+        //параметры Роклиджа
+        double const A;
+        double const B;
 
         //показатели перехода по циклам
         int Cycles_done; //переходов совершено
