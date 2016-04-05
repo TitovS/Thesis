@@ -15,11 +15,11 @@ Grid::Grid() {
 
     a_right = 0;
 
-    a_left=0.065;
+    a_left=0.035;
 
-    eps = 0.0000001;
+    eps = 0.00000001;
 
-    step = 0.00001;
+    step = 0.000001;
 
     char const *pchar = "MainTable";
     std::ofstream out;
@@ -40,6 +40,8 @@ void Grid::Save(int num_cycles){
     grid_results [grid_num+1] = num_cycles; // Соответсвующее количество циклов
 
     grid_num+=2;
+
+
 
 }
 

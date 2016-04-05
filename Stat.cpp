@@ -19,7 +19,16 @@ Stat::Stat(void) {
 void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool mode) {
 
 
+
+
     if (!mode) {
+
+        std::ofstream out;
+        std::string a = std::to_string(a_index);
+        std::string s = std::to_string(u_cycle);
+        s = a + "_" + s + ".txt";
+        char const *pchar = s.c_str();
+        out.open(pchar, std::ofstream::out | std::ofstream::trunc);
 
         double x = 0; // длинна между точками цикла
 
@@ -29,9 +38,9 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
             for (int i = 0; i < m_dim; ++i) {
 
                 x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
-
+                out << _cp[i] << " "; //записываем в файл
             }
-            //out << "\n";
+            out << "\n";
 
             l_cycle[u_cycle] += sqrt(x); //длина
             s_cycle[u_cycle] += 1; //кол-во точек в цикле
@@ -41,13 +50,16 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
 
 
         }
-        //out << "\n";
-        //Запись в файл
-        char const *pchar = "MainTable";
-        std::ofstream out;
-        out.open(pchar, std::ofstream::out | std::ofstream::app);
-        out << a_index << ' ' << s_cycle[u_cycle] <<' ' << l_cycle[u_cycle] <<"\n";
+        out << "\n";
+
         out.close();
+
+        //Запись в файл
+        char const *pchar2 = "MainTable.txt";
+        std::ofstream out2;
+        out2.open(pchar2, std::ofstream::out | std::ofstream::app);
+        out2 << a_index << ' ' << s_cycle[u_cycle] <<' ' << l_cycle[u_cycle] <<"\n";
+        out2.close();
 
     }
 

@@ -84,7 +84,11 @@
         GetLine();
         std::memcpy(x, dot, m_dim * sizeof(double));
 
-        for (int k = 0; k < 30; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
+        double k_max;
+
+        k_max = round(3.25/a);
+
+        for (int k = 0; k < k_max; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
 
             GetTr(x, a, 5, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
 
@@ -92,13 +96,14 @@
                 x[j] = dot[j] + vector[j] * t;
             }
 
-            t+=0.065;
+            t+=a;
         }
 
         //Запись идет только в том случае, если не поиск разрыва
         if (!BreakpointSearchMode) {
-            Save();
-            std::cout << '=' << std::flush;}
+            //Save();
+            //std::cout << '=' << std::flush;
+        }
 
         delete[] x;
     };
@@ -162,7 +167,7 @@
     void System::GetBreak(Stat *S, Grid *A) {
         //TODO сделать проверку на новые циклы при поиске разрыва
         // Маркер поиска разрыва
-        BreakpointSearchMode = true;
+
         // Отчистка старой статистики
         S->Reset();
 
@@ -178,10 +183,14 @@
         // Цикл поиска точки разрыва с точностью eps
         while (amid > A->eps){
 
+            BreakpointSearchMode = true;
+
             //Поиск правой части
             GetCycles(S,A->a_right);
             num_cycles_right = S->u_cycle;
             S->Reset();
+
+            BreakpointSearchMode = false;
 
             //Поиск центральной части
             GetCycles(S,(A->a_left + amid));
