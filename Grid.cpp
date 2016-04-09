@@ -7,24 +7,30 @@
 #include <fstream>
 #include <iomanip>
 
+
+
 Grid::Grid() {
 
-    grid_results = new (std::nothrow) double[10000000]; //TODO может имеет смысл сделать вектором для динмаичегого размера
+    int size;
+
+    std::ifstream fin("init/GridInit.txt"); // opens the text file
+    std::string name;
+
+    //Размерность системы
+    fin >> name >> size;
+    grid_results = new (std::nothrow) double[size]; //TODO может имеет смысл сделать вектором для динмаичегого размера
+
+    fin >> name >> a_left;
+    fin >> name >> eps;
+    fin >> name >> step;
 
     grid_num=0;
 
     a_right = 0;
 
-    a_left=0.035;
+    fin.close();
 
-    eps = 0.00000001;
 
-    step = 0.000001;
-
-    char const *pchar = "MainTable";
-    std::ofstream out;
-    out.open(pchar, std::ofstream::out | std::ofstream::trunc);
-    out.close();
 }
 
 void Grid::Grid_make_step() {

@@ -3,28 +3,41 @@
 #include <fstream>
 #include <math.h>
 #include <random>
-#include <cstring>
+#include <string>
 
 
 
 
     // конструктор
-    System::System(void) :  m_b(8. / 3.),   //Бета Лоренца
-                            m_r(28),        //Ро Лоренца
-                            m_sigma(10),    //Сигма Лоренца
-                            m_dim(3),       //Размерность системы
-                            p1(73856093),   //Хэш значения
-                            p2(19349663),   //---
-                            p3(83492791) ,  //---
-                            A(2.0),         //А Роклиджа
-                            B(6.7)          //В Роклиджа
-    {
+    System::System(void)
 
-        // количество точек в траектории
-        m_n = 8000*m_dim; // 8000 просто начальный размер
+    {   std::ifstream fin("init/SysInit.txt"); // opens the text file
+        std::string name;
+
+        //Размерность системы
+        fin >> name >> m_dim;
+
+        //Характеристики системы
+        fin >> name >> A;
+        fin >> name >> B;
+
+        //Хэш Значения
+        fin >> name >> p1;
+        fin >> name >> p2;
+        fin >> name >> p3;
+
+        //Начальное количество точек в траектории
+        fin >> name >> m_n;
 
         // Размер хэш таблицы
-        h_n = 100000;  //TODO Имеет ли смысл делать динамический хэш?
+        fin >> name >> h_n;
+
+
+        fin.close();
+
+        m_n = m_n*m_dim;
+
+
         m_hash = new std::list<int> [h_n];
 
         //количество вычисленных точек
@@ -38,8 +51,8 @@
         m_tr = m_tr1;
 
         //Прямая для вычисления всех значений
-        vector =  new double [3];
-        dot =  new double [3];
+        vector =  new double [m_dim];
+        dot =  new double [m_dim];
 
         //Моды
         BreakpointSearchMode = false;
