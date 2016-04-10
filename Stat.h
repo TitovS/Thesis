@@ -16,10 +16,10 @@ public:
     //char const *pchar; // Итоговый файл
 
     //Массив длин циклов
-    double* l_cycle;
+    double l_cycle;
 
     //Массив шагов циклов
-    int* s_cycle;
+    int s_cycle;
 
     //Количество циклов
     int n_cycle;

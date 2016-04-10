@@ -11,17 +11,17 @@
 Stat::Stat(void) {
     n_cycle = 0;
     u_cycle = 0;
-    l_cycle = new double [1000]; //TODO Оформить динмаичесские массивы?
-    s_cycle = new int [1000];
+    l_cycle = 0;
+    s_cycle = 0;
 
 }
 
 void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool mode) {
 
 
-
-
     if (!mode) {
+        l_cycle = 0;
+        s_cycle = 0;
 
         std::ofstream out;
         std::string a = std::to_string(a_index);
@@ -42,8 +42,8 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
             }
             out << "\n";
 
-            l_cycle[u_cycle] += sqrt(x); //длина
-            s_cycle[u_cycle] += 1; //кол-во точек в цикле
+            l_cycle += sqrt(x); //длина
+            s_cycle += 1; //кол-во точек в цикле
             x = 0;
 
             _cp += m_dim; // переход к следующей точке
@@ -58,7 +58,7 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
         char const *pchar2 = "MainTable.txt";
         std::ofstream out2;
         out2.open(pchar2, std::ofstream::out | std::ofstream::app);
-        out2 << a_index << ' ' << s_cycle[u_cycle] <<' ' << l_cycle[u_cycle] <<"\n";
+        out2 << a_index << ' ' << s_cycle <<' ' << l_cycle <<"\n";
         out2.close();
 
     }
@@ -79,7 +79,6 @@ void Stat::Reset() {
 
 Stat::~Stat(){
 
-    delete[] l_cycle;
-    delete[] s_cycle;
+
 
 }
