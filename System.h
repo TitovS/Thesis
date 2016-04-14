@@ -3,20 +3,20 @@
 //
 
 
-#ifndef THESIS_LORENZ_H
-#define THESIS_LORENZ_H
+#ifndef THESIS_SYSTEM_H
+#define THESIS_SYSTEM_H
 
 #include "map"
 #include "list"
 #include "Stat.h"
 #include "Grid.h"
 
-class Lorenz
+class System
 {
 public:
 
     // конструктор
-    Lorenz (void);
+    System(void);
 
     // Вычисление всех циклов
         // Stat* - класс статистики
@@ -36,18 +36,21 @@ public:
         void Reset();
 
     // Деконструктор
-        ~Lorenz ();
+        ~System();
 
 
 private:
 //_____________Система________________
 
-    //Система Лоренца
+    //Система
 
-        //параметры
-        double const m_b;
-        double const m_sigma;
-        double const m_r;
+        //параметры Лоренца
+        //double const m_b;
+        //double const m_sigma;
+        //double const m_r;
+        //параметры Роклиджа
+        double A;
+        double B;
 
         //показатели перехода по циклам
         int Cycles_done; //переходов совершено
@@ -66,7 +69,7 @@ private:
         double* dot; //точка на прямой
 
         // Размерность системы
-        int const m_dim;
+        int m_dim;
 
         // Нумерация
         int num_main; //сквозная нумерация
@@ -141,9 +144,9 @@ private:
         int h_n;
 
         // Хэш значения
-        int const p1;
-        int const p2;
-        int const p3;
+        int  p1;
+        int  p2;
+        int  p3;
 
 
 //_____________Дополнительное________________
@@ -159,4 +162,4 @@ private:
 
 
 
-#endif //CLASSES_CPOINT_H
+#endif //THESIS_SYSTEM_H

@@ -6,12 +6,12 @@
 //  Copyright (c) 2015 Сергей Титов. All rights reserved.
 //
 
-#include "Lorenz.h"
+#include "System.h"
 
 int main (void) {
 
     Stat* S = new Stat; // Создание класса статистики
-    Lorenz* L = new Lorenz; // Создание класса аттрактора
+    System * L = new System; // Создание класса аттрактора
     Grid* A= new Grid; // Создание класса решетки
 
     int n_last_cycles = 0; // Количество циклов в прошлой итерации
@@ -19,17 +19,18 @@ int main (void) {
 
     L->GetCycles(S, A->a_left); // Количество циклов при нынешней
     n_last_cycles = S->u_cycle; // Запись
-    A->Save(n_last_cycles);// Сохранение результатов
+    //A->Save(S->u_cycle);// Сохранение результатов
 
     A->Grid_make_step(); // Переход на следующую решетку
     S->Reset(); // Обнуление класса статистики
     L->Reset(); // Обнуление класса системы
 
-    for (int i = 1; i < 20; ++i) {
+    for (int i = 1; i < 2   ; ++i) {
 
         L->GetCycles(S,A->a_left); // Поиск всех циклов
         A->Save(S->u_cycle); // Запись реузльтатов
-        if (n_last_cycles != S->u_cycle) L->GetBreak(S,A); // Если количество циклов не совпадает, то ищем точку разрыва
+        if (n_last_cycles != S->u_cycle)
+            L->GetBreak(S,A); // Если количество циклов не совпадает, то ищем точку разрыва
 
         n_last_cycles = S->u_cycle; // Возвращаемся на движение по прямой
 
@@ -38,7 +39,7 @@ int main (void) {
         L->Reset(); // Обнуление класса системы
     }
 
-    A->Save_in_file();
+   // A->Save_in_file();
 
     delete A;
     delete L;
