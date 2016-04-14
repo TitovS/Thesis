@@ -103,7 +103,7 @@
 
         for (int k = 0; k < k_max; ++k) { // 200 шагов - при данном t повзовлет пройти всю прямую
 
-            GetTr(x, a, 5, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
+            GetTr(x, a, 10, S); // Начальные данные, величина решетки, шаг на решетке, класс статистики
 
             for (int j = 0; j < m_dim; ++j) { // Следующий шаг
                 x[j] = dot[j] + vector[j] * t;
@@ -124,7 +124,7 @@
     // Вычисление фазовой траектории
     void System::GetTr (double* _init, double _a, int _b, Stat* S) {
         // Шаг вычислительного метода
-        m_dt = _a*_b;
+        m_dt = (_a*_b);
 
         // Параметры решетки
         a=_a;
@@ -217,8 +217,8 @@
             else {
                 A->a_left += amid;
                 // Если центральная часть отличается от старых реультатов, то сохраняется
-                if (num_cycles_middle != A->grid_results[A->grid_num-1])
-                    A->Save(num_cycles_middle);
+                //if (num_cycles_middle != A->grid_results[A->grid_num-1])
+                    //A->Save(num_cycles_middle);
 
 
             }
@@ -226,7 +226,7 @@
             amid = (A->a_right-A->a_left)/2;
         }
 
-        A->Save(num_cycles_middle);
+        // A->Save(num_cycles_middle);
         BreakpointSearchMode = false;
 
         A->a_left = oldgrid;

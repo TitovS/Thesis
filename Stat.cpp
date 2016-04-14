@@ -6,6 +6,7 @@
 #include "iostream"
 #include "math.h"
 #include <fstream>
+#include <iomanip>
 
 
 Stat::Stat(void) {
@@ -14,6 +15,10 @@ Stat::Stat(void) {
     l_cycle = 0;
     s_cycle = 0;
 
+    char const *pchar = "MainTable.txt";
+    std::ofstream out;
+    out.open(pchar, std::ofstream::out | std::ofstream::trunc);
+    out.close();
 }
 
 void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool mode) {
@@ -55,10 +60,11 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
         out.close();
 
         //Запись в файл
+
         char const *pchar2 = "MainTable.txt";
         std::ofstream out2;
         out2.open(pchar2, std::ofstream::out | std::ofstream::app);
-        out2 << a_index << ' ' << s_cycle <<' ' << l_cycle <<"\n";
+        out2 << std::setprecision(9) << a_index << ' ' << s_cycle <<' ' << l_cycle <<"\n";
         out2.close();
 
     }

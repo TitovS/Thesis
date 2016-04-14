@@ -51,7 +51,7 @@ void Grid::Save(int num_cycles){
 
 }
 
-void Grid::Save_in_file() {
+/*void Grid::Save_in_file() {
 
     std::ofstream out;
     char const *pchar = "MainTable";
@@ -72,7 +72,7 @@ void Grid::Grid_step_est() {
 
 
 }
-
+*/
 
 Grid::~Grid() {
 

@@ -19,13 +19,13 @@ int main (void) {
 
     L->GetCycles(S, A->a_left); // Количество циклов при нынешней
     n_last_cycles = S->u_cycle; // Запись
-    A->Save(S->u_cycle);// Сохранение результатов
+    //A->Save(S->u_cycle);// Сохранение результатов
 
     A->Grid_make_step(); // Переход на следующую решетку
     S->Reset(); // Обнуление класса статистики
     L->Reset(); // Обнуление класса системы
 
-    for (int i = 1; i < 200; ++i) {
+    for (int i = 1; i < 2   ; ++i) {
 
         L->GetCycles(S,A->a_left); // Поиск всех циклов
         A->Save(S->u_cycle); // Запись реузльтатов
