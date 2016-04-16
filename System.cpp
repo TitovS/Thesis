@@ -4,7 +4,7 @@
 #include <math.h>
 #include <random>
 #include <string>
-
+#include <cstring> 
 
 
 
@@ -95,7 +95,7 @@
 
         // Получаем одну траекторию и создаем прямую, для находждения всех циклов
         GetLine();
-        std::memcpy(x, dot, m_dim * sizeof(double));
+        memcpy(x, dot, m_dim * sizeof(double));
 
         double k_max;
 
@@ -138,7 +138,7 @@
 
         // Запись начальных условий
         GridTr(_init);
-        std::memcpy (&m_tr[num_first*m_dim], _init, m_dim * sizeof (double));
+        memcpy (&m_tr[num_first*m_dim], _init, m_dim * sizeof (double));
 
         bool cycle = false; // Инвариант цикла - вычисление до нахождения цикла
 
@@ -375,7 +375,7 @@
                 //delete[] m_tr2;
                 m_n = m_n * 2; //увеличение размера массива в двое
                 m_tr2 = new(std::nothrow) double[m_n];
-                std::memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
+                memcpy(m_tr2, m_tr1, m_n / 2 * sizeof(double));
                 m_tr = m_tr2;
                 delete[] m_tr1;
                 m_tr1 = NULL;
@@ -386,7 +386,7 @@
                 //delete[] m_tr1;
                 m_n = m_n * 2; //увеличение размера массива в двое
                 m_tr1 = new(std::nothrow) double[m_n];
-                std::memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
+                memcpy(m_tr1, m_tr2, m_n / 2 * sizeof(double));
                 m_tr = m_tr1;
                 delete[] m_tr2;
                 m_tr2 = NULL;
@@ -406,7 +406,7 @@
 
         if (k == 0 ){
 
-            std::memset(m_tr1 ,0, m_n* sizeof(double));
+            memset(m_tr1 ,0, m_n* sizeof(double));
             m_tr = m_tr1;
             delete[] m_tr2;
             m_tr2 = NULL;
@@ -415,7 +415,7 @@
         else {
 
             m_tr1 = new(std::nothrow) double[m_n];
-            std::memset(m_tr1 ,0, m_n* sizeof(double));
+            memset(m_tr1 ,0, m_n* sizeof(double));
             m_tr = m_tr1;
             delete[] m_tr2;
             m_tr2 = NULL;
@@ -423,8 +423,8 @@
 
         }
 
-        std::memset(vector,0,3* sizeof(double));
-        std::memset(dot,0,3* sizeof(double));
+        memset(vector,0,3* sizeof(double));
+        memset(dot,0,3* sizeof(double));
 
     }
 
