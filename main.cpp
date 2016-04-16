@@ -25,7 +25,7 @@ int main (void) {
     S->Reset(); // Обнуление класса статистики
     L->Reset(); // Обнуление класса системы
 
-    for (int i = 1; i < 2   ; ++i) {
+    for (int i = 1; i < L->steps; ++i) {
 
         L->GetCycles(S,A->a_left); // Поиск всех циклов
         A->Save(S->u_cycle); // Запись реузльтатов
