@@ -400,6 +400,7 @@
 
         // Размер хэш таблицы
         h_n=100000;  //TODO динмаический хэш.
+        delete[] m_hash;
         m_hash = new std::list<int> [h_n];
 
         num_main = 0;
