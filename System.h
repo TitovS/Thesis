@@ -37,6 +37,8 @@ public:
 
     // Деконструктор
         ~System();
+        
+        int steps;
 
 
 private:
