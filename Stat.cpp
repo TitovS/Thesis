@@ -28,12 +28,12 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
         l_cycle = 0;
         s_cycle = 0;
 
-        std::ofstream out;
-        std::string a = std::to_string(a_index);
-        std::string s = std::to_string(u_cycle);
-        s = a + "_" + s + ".txt";
-        char const *pchar = s.c_str();
-        out.open(pchar, std::ofstream::out | std::ofstream::trunc);
+        //std::ofstream out;
+        //std::string a = std::to_string(a_index);
+        //std::string s = std::to_string(u_cycle);
+        //s = a + "_" + s + ".txt";
+        //char const *pchar = s.c_str();
+        //out.open(pchar, std::ofstream::out | std::ofstream::trunc);
 
         double x = 0; // длинна между точками цикла
 
@@ -43,9 +43,9 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
             for (int i = 0; i < m_dim; ++i) {
 
                 x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
-                out << _cp[i] << " "; //записываем в файл
+                //out << _cp[i] << " "; //записываем в файл
             }
-            out << "\n";
+            //out << "\n";
 
             l_cycle += sqrt(x); //длина
             s_cycle += 1; //кол-во точек в цикле
@@ -55,9 +55,9 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
 
 
         }
-        out << "\n";
+        //out << "\n";
 
-        out.close();
+        //out.close();
 
         //Запись в файл
 
