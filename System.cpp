@@ -14,6 +14,8 @@
     {   std::ifstream fin("init/SysInit.txt"); // opens the text file
         std::string name;
 
+         fin >> name >> steps;
+
         //Размерность системы
         fin >> name >> m_dim;
 
