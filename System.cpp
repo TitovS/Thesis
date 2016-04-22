@@ -20,8 +20,9 @@
         fin >> name >> m_dim;
 
         //Характеристики системы
-        fin >> name >> A;
-        fin >> name >> B;
+        fin >> name >> m_sigma;
+        fin >> name >> m_b;
+        fin >> name >> m_r;
 
         //Хэш Значения
         fin >> name >> p1;
@@ -69,23 +70,23 @@
 
 
         //Lorenz
-        // dot[0] = sqrt((m_r-1)*m_b) ;
-        // dot[1] =dot[0];
-        // dot[2] =m_r-1;
+        dot[0] = sqrt((m_r-1)*m_b) ;
+        dot[1] =dot[0];
+        dot[2] =m_r-1;
 
-        // vector[0] = -1*(dot[0] + dot[0]);
-        // vector[1] = vector[0];
-        // vector[2] = 0;
-
-
-
-        dot[0] = 0;
-        dot[1] = sqrt(B);
-        dot[2] = B;
-
-        vector[0] = 0;
-        vector[1] = -2*sqrt(B);
+        vector[0] = -1*(dot[0] + dot[0]);
+        vector[1] = vector[0];
         vector[2] = 0;
+
+
+        //Ruclige
+        //dot[0] = 0;
+        //dot[1] = sqrt(B);
+        //dot[2] = B;
+
+        //vector[0] = 0;
+        //vector[1] = -2*sqrt(B);
+        //vector[2] = 0;
     }
 
     // Вычисление всех циклов при заданной дискретизации
@@ -287,14 +288,14 @@
     void System::PhVelocity (double*& _cp) {
 
 
-        m_v [0] = -1*A*_cp [0] + B*_cp [1] - (_cp [2]*_cp [1]);
-        m_v [1] = _cp [0];
-        m_v [2] = -1*_cp [2]+(_cp[1]*_cp[1]);
+        //m_v [0] = -1*A*_cp [0] + B*_cp [1] - (_cp [2]*_cp [1]);
+        //m_v [1] = _cp [0];
+        //m_v [2] = -1*_cp [2]+(_cp[1]*_cp[1]);
 
     //Lorenz
-        //m_v [0] = m_sigma * (_cp [1] - _cp [0]);
-        //m_v [1] = (m_r - _cp [2]) * _cp [0] - _cp [1];
-        //m_v [2] = _cp [0] * _cp [1] - m_b * _cp [2];
+        m_v [0] = m_sigma * (_cp [1] - _cp [0]);
+        m_v [1] = (m_r - _cp [2]) * _cp [0] - _cp [1];
+        m_v [2] = _cp [0] * _cp [1] - m_b * _cp [2];
 
     //Duffing
         // m_v [0] = _cp [1];

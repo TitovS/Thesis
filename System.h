@@ -41,18 +41,19 @@ public:
         int steps;
 
 
+
 private:
 //_____________Система________________
 
     //Система
 
         //параметры Лоренца
-        //double const m_b;
-        //double const m_sigma;
-        //double const m_r;
+        double m_b;
+        double m_sigma;
+        double m_r;
         //параметры Роклиджа
-        double A;
-        double B;
+        //double A;
+        //double B;
 
         //показатели перехода по циклам
         int Cycles_done; //переходов совершено
