@@ -14,11 +14,11 @@ int main (void) {
     System * L = new System; // Создание класса аттрактора
     Grid* A= new Grid; // Создание класса решетки
 
-    int n_last_cycles = 0; // Количество циклов в прошлой итерации
+    //int n_last_cycles = 0; // Количество циклов в прошлой итерации
 
 
     L->GetCycles(S, A->a_left); // Количество циклов при нынешней
-    n_last_cycles = S->u_cycle; // Запись
+    //n_last_cycles = S->u_cycle; // Запись
     //A->Save(S->u_cycle);// Сохранение результатов
 
     A->Grid_make_step(); // Переход на следующую решетку
@@ -28,11 +28,11 @@ int main (void) {
     for (int i = 1; i < L->steps; ++i) {
 
         L->GetCycles(S,A->a_left); // Поиск всех циклов
-        A->Save(S->u_cycle); // Запись реузльтатов
-        if (n_last_cycles != S->u_cycle)
-            L->GetBreak(S,A); // Если количество циклов не совпадает, то ищем точку разрыва
+        //A->Save(S->u_cycle); // Запись реузльтатов
+        //if (n_last_cycles != S->u_cycle)
+        //    L->GetBreak(S,A); // Если количество циклов не совпадает, то ищем точку разрыва
 
-        n_last_cycles = S->u_cycle; // Возвращаемся на движение по прямой
+        //n_last_cycles = S->u_cycle; // Возвращаемся на движение по прямой
 
         A->Grid_make_step(); // Переход на следующую решеткуПереход на следующую решетку
         S->Reset(); // Обнуление класса статистики

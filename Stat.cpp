@@ -43,9 +43,9 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
             for (int i = 0; i < m_dim; ++i) {
 
                 x += (_cp[i] - _cp[i + m_dim]) * (_cp[i] - _cp[i + m_dim]);
-                //out << _cp[i] << " "; //записываем в файл
+          //      out << _cp[i] << " "; //записываем в файл
             }
-            //out << "\n";
+           // out << "\n";
 
             l_cycle += sqrt(x); //длина
             s_cycle += 1; //кол-во точек в цикле
@@ -55,9 +55,9 @@ void Stat::collect(double* _cp, int m_dim, int num_cycle, double a_index, bool m
 
 
         }
-        //out << "\n";
+     //   out << "\n";
 
-        //out.close();
+       // out.close();
 
         //Запись в файл
 
